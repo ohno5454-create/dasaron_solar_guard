@@ -1,0 +1,2608 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- 보안: CSP — 허용된 출처(CDN·카카오·OpenFreeMap) 외 스크립트·리소스 차단 -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://dapi.kakao.com https://*.daumcdn.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: blob: https://*.daumcdn.net https://*.kakaocdn.net https://map.daumcdn.net https://tiles.openfreemap.org; connect-src 'self' blob: https://tiles.openfreemap.org https://dapi.kakao.com https://*.daumcdn.net https://cdnjs.cloudflare.com; worker-src 'self' blob:; font-src 'self' data: https://tiles.openfreemap.org; object-src 'none'; base-uri 'self'">
+<title>Dasaron Solar Guard v2.2 — 태양광·ESS·EV AI 통합 안전관제</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#eef2f7">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="icon" href="./icon-192.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js"></script>
+<style>
+:root{--bg:#eef2f7;--panel:#ffffff;--panel2:#f1f5fa;--line:#d9e1ec;--txt:#1a2432;--sub:#5a6b82;
+--blue:#3b82f6;--green:#22c55e;--amber:#f59e0b;--red:#ef4444;--orange:#F98A0B;}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Malgun Gothic','Segoe UI',sans-serif;}
+body{background:var(--bg);color:var(--txt);font-size:14px;}
+header{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10;flex-wrap:wrap;}
+.logo{font-size:18px;font-weight:800;color:var(--txt);letter-spacing:.5px;}
+.logo .o{color:var(--orange);}
+header .tag{font-size:11px;color:var(--sub);border:1px solid var(--line);padding:2px 8px;border-radius:10px;}
+nav{margin-left:auto;display:flex;gap:2px;flex-wrap:wrap;}
+nav button{background:none;border:none;color:var(--sub);padding:9px 12px;font-size:14px;cursor:pointer;border-radius:8px;white-space:nowrap;}
+nav button.on{background:var(--panel2);color:var(--txt);font-weight:700;}
+#clock{font-size:12px;color:var(--sub);}
+main{padding:16px;max-width:1500px;margin:0 auto;}
+.grid{display:grid;gap:12px;}
+.cards4{grid-template-columns:repeat(auto-fit,minmax(210px,1fr));}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:0 1px 3px rgba(16,24,40,.06);}
+.card h3{font-size:12px;color:var(--sub);font-weight:600;margin-bottom:8px;}
+.card .big{font-size:24px;font-weight:800;}
+.card .small{font-size:11px;color:var(--sub);margin-top:6px;}
+.clickable{cursor:pointer;}
+.clickable:hover{border-color:var(--orange);}
+.sitegrid{grid-template-columns:repeat(auto-fill,minmax(280px,1fr));margin-top:12px;}
+.site{cursor:pointer;transition:.15s;}
+.site:hover{border-color:var(--orange);}
+.site.alerted{border-color:var(--red);box-shadow:0 0 12px rgba(239,68,68,.35);}
+.badge{display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;}
+.b-ok{background:rgba(34,197,94,.15);color:var(--green);}
+.b-warn{background:rgba(245,158,11,.15);color:var(--amber);}
+.b-danger{background:rgba(239,68,68,.18);color:var(--red);}
+.b-info{background:rgba(59,130,246,.18);color:#2563eb;}
+.b-org{background:rgba(249,138,11,.16);color:var(--orange);}
+.riskbar{height:8px;background:#e6ebf2;border-radius:4px;overflow:hidden;margin-top:10px;}
+.riskbar i{display:block;height:100%;border-radius:4px;transition:.5s;}
+.row{display:flex;align-items:center;gap:10px;}
+.spacer{flex:1;}
+h2.sec{font-size:16px;margin:6px 0 12px;font-weight:800;}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:520px;}
+th{background:var(--panel2);color:var(--sub);font-weight:600;text-align:left;padding:8px 9px;font-size:12px;white-space:nowrap;}
+td{padding:8px 9px;border-top:1px solid var(--line);}
+tr.alarm-red td{background:rgba(239,68,68,.07);}
+tr.rowlink{cursor:pointer;}
+tr.rowlink:hover td{background:rgba(59,130,246,.08);}
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.btn{border:none;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-red{background:var(--red);color:#fff;}
+.btn-blue{background:var(--blue);color:#fff;}
+.btn-org{background:var(--orange);color:#fff;}
+.btn-ghost{background:var(--panel2);color:var(--txt);border:1px solid var(--line);}
+.two{grid-template-columns:1.4fr 1fr;}
+.two5{grid-template-columns:1fr 1fr;}
+.three{grid-template-columns:repeat(3,1fr);}
+canvas{max-height:240px;}
+.aibox{border-left:4px solid var(--orange);background:var(--panel2);padding:12px 14px;border-radius:8px;margin-top:10px;font-size:13px;line-height:1.6;}
+.aibox b{color:var(--txt);}
+select,input[type=text],input[type=number],input[type=password],input[type=date]{background:var(--panel2);border:1px solid var(--line);color:var(--txt);padding:9px 10px;border-radius:8px;font-size:14px;}
+input[type=date]{color-scheme:dark;}
+label.ck{font-size:12px;color:var(--sub);display:inline-flex;align-items:center;gap:5px;padding:4px 0;}
+label.ck input{width:16px;height:16px;}
+.rev{color:#16a34a;font-weight:800;}
+.toast{position:fixed;right:14px;left:14px;bottom:16px;background:var(--red);color:#fff;padding:13px 16px;border-radius:10px;font-weight:700;box-shadow:0 8px 30px rgba(0,0,0,.5);display:none;z-index:50;max-width:460px;margin-left:auto;}
+footer{padding:14px 16px;color:#5b6778;font-size:11px;border-top:1px solid var(--line);margin-top:26px;}
+.hidden{display:none!important;}
+.kpi-risk{color:var(--red);} .kpi-ok{color:var(--green);}
+#login{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;}
+.loginbox{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:30px 26px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+.loginbox input{width:100%;margin-top:10px;padding:13px;font-size:15px;}
+.socbar{height:14px;background:#e6ebf2;border-radius:7px;overflow:hidden;margin-top:8px;}
+.socbar i{display:block;height:100%;background:linear-gradient(90deg,#22c55e,#4ade80);border-radius:7px;}
+.mapdot{cursor:pointer;}
+@keyframes pulse{0%{r:8}50%{r:13}100%{r:8}}
+.mapdot.alert circle.core{animation:pulse 1s infinite;}
+#hoverTip{position:fixed;z-index:80;background:#1a2130;border:1px solid var(--orange);border-radius:10px;padding:10px 12px;font-size:12.5px;line-height:1.6;color:#e8ecf4;pointer-events:none;display:none;box-shadow:0 10px 30px rgba(0,0,0,.5);max-width:260px;}
+#hoverTip b{color:#fff;}
+@media print{header,nav,.btn,footer,#repToolbar,#hoverTip{display:none!important;} body{background:#fff;color:#000;} main{padding:0;} .card{border:1px solid #bbb;background:#fff;break-inside:avoid;box-shadow:none;} td,th{color:#000;} .tablewrap{overflow:visible!important;max-height:none!important;} table{font-size:10.5px;min-width:0!important;} #repDocHead{border:2px solid #333;} .aibox{border-left:4px solid #F98A0B;} @page{margin:12mm;}}
+@media (max-width:820px){
+  .two,.two5,.three,#ovGrid3{grid-template-columns:1fr!important;}
+  header{padding:8px 10px;gap:6px;}
+  #clock{display:none;}
+  nav{margin-left:0;width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px;}
+  nav button{padding:10px 11px;font-size:13.5px;}
+  main{padding:10px;}
+  .card{padding:12px;}
+  .card .big{font-size:21px;}
+  .btn{padding:11px 14px;}
+  .cards4{grid-template-columns:repeat(2,1fr);}
+  .sitegrid{grid-template-columns:1fr;}
+}
+#mapStage{position:relative;width:100%;height:calc(100vh - 128px);min-height:560px;background:#dce7f0;border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+#kakaoMap{position:absolute;inset:0;z-index:1;display:none;}
+#glMap{position:absolute;inset:0;z-index:1;display:none;}
+.glMarker{cursor:pointer;}
+.glMarker .lbl{background:rgba(16,24,40,.72);color:#fff;border:1.5px solid #fff;border-radius:12px;padding:2px 8px;font-size:12px;font-weight:800;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.45);}
+.glMarker .dot{width:13px;height:13px;border:2px solid #fff;border-radius:50%;margin:1px auto 0;box-shadow:0 2px 4px rgba(0,0,0,.4);}
+#krMap{position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:none;background:#dce7f0;display:block;}
+#krMap:active{cursor:grabbing;}
+.ovPanel{position:absolute;top:66px;bottom:14px;width:238px;background:rgba(255,255,255,.28);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);border:1px solid rgba(180,195,215,.45);border-radius:12px;padding:10px;overflow:auto;z-index:6;box-shadow:0 6px 20px rgba(20,30,50,.10);}
+#ovLeft{left:14px;} #ovRight{right:14px;}
+.ovPanel .card{background:rgba(255,255,255,.40);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);}
+#ovTop{position:absolute;left:0;right:0;top:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;z-index:7;padding:0 260px;pointer-events:none;}
+.ovchip{background:rgba(255,255,255,.25);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);border:1px solid rgba(180,195,215,.45);border-radius:10px;padding:5px 10px;font-size:11px;color:#33415c;box-shadow:0 3px 10px rgba(20,30,50,.08);pointer-events:auto;text-align:center;min-width:66px;}
+.ovchip b{display:block;font-size:16px;font-weight:800;color:var(--txt);line-height:1.15;}
+.ovchip.clickable{cursor:pointer;}
+#ovZoom{position:absolute;right:264px;bottom:20px;display:flex;flex-direction:column;gap:6px;z-index:7;}
+#ovZoom button{width:38px;height:38px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.9);font-size:20px;font-weight:800;cursor:pointer;color:var(--txt);box-shadow:0 3px 10px rgba(20,30,50,.12);}
+@media (max-width:920px){
+  #mapStage{height:auto;min-height:0;border:none;background:transparent;}
+  #krMap{position:relative;height:56vh;border:1px solid var(--line);border-radius:12px;}
+  #ovTop{position:static;padding:0;justify-content:flex-start;margin-bottom:10px;}
+  .ovPanel{position:static;width:auto;top:auto;bottom:auto;margin-top:10px;max-height:320px;backdrop-filter:none;background:var(--panel);}
+  #ovZoom{right:24px;bottom:auto;top:10px;flex-direction:row;}
+}
+</style>
+</head>
+<body>
+
+<div id="hoverTip"></div>
+
+<!-- 로그인 -->
+<div id="login">
+  <div class="loginbox">
+    <div style="text-align:center;">
+      <div style="display:inline-block;width:46px;height:46px;border:7px solid var(--orange);border-radius:50%;margin-bottom:8px;"></div>
+      <div class="logo" style="font-size:24px;">DASAR<span class="o">O</span>N</div>
+      <div style="color:var(--orange);font-weight:700;font-size:15px;margin-top:2px;">Solar Guard</div>
+      <div style="font-size:12px;color:var(--sub);margin-top:4px;">태양광·ESS·EV AI 통합 안전관제 v2.2</div>
+    </div>
+    <input type="text" id="liId" placeholder="아이디" autocomplete="off">
+    <input type="password" id="liPw" placeholder="비밀번호">
+    <div class="row" style="margin-top:10px;">
+      <label class="ck"><input type="checkbox" id="liSave"> 아이디/비밀번호 저장</label>
+      <label class="ck"><input type="checkbox" id="liAuto"> 자동 로그인</label>
+    </div>
+    <button class="btn btn-org" style="width:100%;margin-top:12px;padding:13px;font-size:15px" onclick="doLogin()" data-i18n="login_btn">로그인</button>
+    <div style="font-size:11.5px;color:var(--sub);margin-top:14px;line-height:1.7;border-top:1px solid var(--line);padding-top:10px;">
+      데모 계정: 관리자 <b style="color:var(--txt)">admin/1234</b> · 개별 <b style="color:var(--txt)">ds1/1234</b> · 통합 <b style="color:var(--txt)">hong/1234</b></div>
+  </div>
+</div>
+
+<header>
+  <div class="logo" onclick="gotoView('overview')" style="cursor:pointer" title="통합관제로 이동">DASAR<span class="o">O</span>N <span style="font-weight:700;color:var(--orange);font-size:13px;">Solar Guard</span></div>
+  <div class="tag">v2.2</div>
+  <span class="tag" id="whoami" style="color:var(--orange);border-color:var(--orange)"></span>
+  <div id="clock"></div>
+  <nav>
+    <button class="on" data-v="overview" data-i18n="nav_overview">통합관제</button>
+    <button data-v="pv" data-i18n="nav_pv">발전 모니터링</button>
+    <button data-v="site" data-i18n="nav_site">사이트 상세</button>
+    <button data-v="essev" data-i18n="nav_essev">ESS·EV</button>
+    <button data-v="ai" data-i18n="nav_ai">AI 예지·자동대응</button>
+    <button data-v="alarm"><span data-i18n="nav_alarm">경보</span> <span id="alarmCnt" style="color:var(--red)"></span></button>
+    <button data-v="report" data-i18n="nav_report">보고서</button>
+    <button data-v="acct" class="adminOnly" data-i18n="nav_acct">계정·고객관리</button>
+    <button data-v="admin" class="adminOnly" data-i18n="nav_admin">설정</button>
+    <button onclick="logout()" style="color:var(--red)" data-i18n="nav_logout">로그아웃</button>
+  </nav>
+</header>
+<main>
+
+<!-- 통합관제 -->
+<section id="v-overview">
+  <div id="mapStage">
+    <div id="glMap"></div>
+    <div id="kakaoMap"></div>
+    <svg id="krMap" viewBox="0 0 650 879" preserveAspectRatio="xMidYMid meet">
+      <!-- 대한민국 실제 경계 좌표: johan/world.geo.json (countries/KOR.geo.json) 기반, 등장방형 투영(위도 35.9°N 기준) 후 SVG 좌표로 변환 -->
+      <g id="krLand" fill="#c9d9c4" stroke="#8fa889" stroke-width="1.4" stroke-linejoin="round">
+        <path d="M 387.1,60.0 L 483.8,223.1 L 511.6,312.8 L 512.4,472.1 L 470.2,548.1 L 368.8,574.7 L 279.2,632.1 L 178.3,643.9 L 165.8,568.6 L 186.5,464.9 L 137.0,320.9 L 220.3,297.6 L 143.5,179.3 L 150.5,166.7 L 200.5,171.6 L 244.1,109.2 L 323.3,102.5 L 371.0,93.4 Z"/>
+        <ellipse cx="183.3" cy="783.6" rx="44" ry="25.5"/>
+      </g>
+      <g id="mapDots"></g>
+    </svg>
+
+    <div id="ovTop">
+      <div class="ovchip">관리 사이트<b id="kSites">-</b><span id="kOrg" style="display:none"></span></div>
+      <div class="ovchip">현재 총 출력<b id="kPower">-</b></div>
+      <div class="ovchip">금일 발전량<b id="kEnergy">-</b></div>
+      <div class="ovchip">금일 수익<b id="kRev" class="rev" style="font-size:14px">-</b></div>
+      <div class="ovchip">발전정지<b id="almGenstop">0</b></div>
+      <div class="ovchip">네트워크<b id="almNet">0</b></div>
+      <div class="ovchip">통신이상<b id="almComm">0</b></div>
+      <div class="ovchip clickable" onclick="gotoView('alarm')">경보<b class="kpi-risk" id="almGen">0</b><span id="kAlarms" style="display:none"></span><span id="kNoti" style="display:none"></span></div>
+      <div class="ovchip">AI 최고위험<b id="kRisk">-</b><span id="kRiskSite" style="font-size:9px;color:var(--sub);display:block;font-weight:600">-</span></div>
+    </div>
+
+    <div class="ovPanel" id="ovLeft">
+      <div class="row" style="margin-bottom:8px;flex-wrap:wrap;"><b>사이트 트리</b><div class="spacer"></div>
+        <button class="btn btn-ghost" id="treeGroupBtn" onclick="setTreeMode(true)" style="padding:3px 7px;font-size:11px;border-color:var(--orange);color:#F98A0B">그룹</button>
+        <button class="btn btn-ghost" id="treeAreaBtn" onclick="setTreeMode(false)" style="padding:3px 7px;font-size:11px">지역</button></div>
+      <div id="siteTree" style="font-size:12.5px;"></div>
+      <div style="font-weight:700;margin:10px 0 6px;border-top:1px solid var(--line);padding-top:8px;">발전소 카드</div>
+      <div class="grid sitegrid" id="siteCards" style="grid-template-columns:1fr;"></div>
+    </div>
+
+    <div class="ovPanel" id="ovRight">
+      <div id="wxWidget"><div class="small">기상정보 로딩…</div></div>
+      <div id="vppOv" style="margin-top:12px;border-top:1px solid rgba(180,195,215,.5);padding-top:8px;"></div>
+      <h3 style="margin-top:12px;">경보 발생 현장</h3>
+      <div id="alertSites" class="small" style="margin-top:4px;">현재 미확인 경보가 없습니다.</div>
+    </div>
+
+    <div id="ovZoom">
+      <button onclick="mapZoom(0.8)" title="확대">＋</button>
+      <button onclick="mapZoom(1.25)" title="축소">－</button>
+      <button onclick="mapReset()" title="원래대로" style="font-size:15px">⟲</button>
+    </div>
+  </div>
+</section>
+
+<!-- 발전 모니터링 -->
+<section id="v-pv" class="hidden">
+  <div class="row" style="margin-bottom:12px;flex-wrap:wrap;">
+    <h2 class="sec" style="margin:0;">발전 모니터링</h2>
+    <select id="pvSel"></select>
+    <span class="badge b-ok" id="pvStatus">발전중</span>
+    <div class="spacer"></div>
+    <button class="btn btn-ghost pvtab" data-t="main" style="border-color:var(--orange);color:#F98A0B" data-i18n="pv_tab_main">메인</button>
+    <button class="btn btn-ghost pvtab" data-t="stat" data-i18n="pv_tab_stat">통계</button>
+    <button class="btn btn-ghost pvtab" data-t="inv" data-i18n="pv_tab_inv">인버터 분석</button>
+    <button class="btn btn-ghost pvtab" data-t="sites" data-i18n="pv_tab_sites">사이트별 출력</button>
+  </div>
+  <div id="pv-main">
+    <div class="card" id="pvSumCard" style="margin-bottom:12px;">
+      <h3>보유 발전소 전체 합계 <span class="small" style="font-weight:400">— 발전소를 클릭하면 사이트 상세로 이동합니다</span></h3>
+      <div class="grid cards4" id="pvSum"></div>
+      <div id="pvPlantList" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;"></div>
+    </div>
+    <div class="grid two5">
+      <div class="card" id="gaugeCard">
+        <h3>발전률 (현재출력 / 설비용량) — 마우스를 올리면 상세정보</h3>
+        <div style="position:relative;height:190px"><canvas id="chGauge"></canvas>
+        <div style="position:absolute;left:0;right:0;top:56%;text-align:center;font-size:27px;font-weight:800" id="gaugePct">-</div></div>
+        <div class="small" style="text-align:center" id="pvAc">-</div>
+      </div>
+      <div class="card"><h3>발전 현황</h3><div class="tablewrap"><table style="min-width:0"><tbody id="pvKpi"></tbody></table></div></div>
+    </div>
+    <div class="card" style="margin-top:12px;">
+      <h3>수익 현황 (SMP + REC)</h3>
+      <div class="row" style="flex-wrap:wrap;margin-bottom:12px;">
+        <span class="small" style="margin-top:0">SMP(원/kWh)</span><input type="number" id="inSmp" value="114.96" style="width:95px;opacity:.6" disabled>
+        <span class="small" style="margin-top:0">REC(원/REC)</span><input type="number" id="inRec" value="71945" style="width:105px;opacity:.6" disabled>
+        <span class="small" style="margin-top:0">가중치</span>
+        <input type="number" id="inW" value="1.5" style="width:75px;opacity:.6" disabled>
+      </div>
+      <div class="grid cards4" id="revCards"></div>
+      <div class="small" style="margin-top:10px;">기본값: 전력거래소(KPX) 2026.6 육지 월평균 SMP 114.96원 · REC 현물 71,945원 (정식판: KPX 공공데이터 자동 연동, 일별 단가로 정산)</div>
+    </div>
+    <div class="card" style="margin-top:12px;">
+      <h3 data-i18n="vpp_title">VPP 내일 발전량 예측 — 기상청 단기예보 기반</h3>
+      <div class="grid cards4" id="vppCards"></div>
+      <div class="small" style="margin-top:10px;" data-i18n="vpp_note">※ VPP(가상발전소) 입찰 참고용. 데모는 내장 예보 시뮬레이션이며, 정식판은 기상청 동네예보(단기예보) API + 발전소별 학습 보정으로 산출합니다. 입찰 권고량은 예측의 90%(P90, 보수적 신뢰하한)입니다.</div>
+    </div>
+  </div>
+  <div id="pv-stat" class="hidden">
+    <div class="card">
+      <div class="row" style="margin-bottom:10px;flex-wrap:wrap;">
+        <select id="statMode"><option value="hour">시간발전량</option><option value="day">일일발전량</option><option value="month">월간발전량</option><option value="year">년간발전량</option></select>
+        <button class="btn btn-ghost" id="btnPvToday" style="border-color:var(--orange);color:#F98A0B">당일</button>
+        <button class="btn btn-ghost" id="btnPvYest">전일</button>
+      </div>
+      <div style="height:320px"><canvas id="chStat"></canvas></div>
+      <div id="statTotal" class="small" style="margin-top:8px;font-weight:700;color:var(--txt)"></div>
+    </div>
+    <div class="card" style="margin-top:12px;">
+      <h3>일일 발전량 조회 · 엑셀 다운로드</h3>
+      <div class="row" style="flex-wrap:wrap;margin-bottom:10px;">
+        <select id="dlRange">
+          <option value="1m">최근 1개월</option>
+          <option value="3m">최근 3개월</option>
+          <option value="6m">최근 6개월</option>
+          <option value="1y">최근 1년</option>
+          <option value="custom">기간 지정</option>
+        </select>
+        <span class="small" style="margin-top:0" id="dlStartLbl">시작</span><input type="date" id="dlStart">
+        <span class="small" style="margin-top:0" id="dlEndLbl">종료</span><input type="date" id="dlEnd">
+        <button class="btn btn-blue" id="btnDlSearch">조회</button>
+        <button class="btn btn-org" id="btnDlExcel">엑셀 다운로드</button>
+        <span class="small" id="dlSummary" style="margin-top:0"></span>
+      </div>
+      <div class="tablewrap" style="max-height:340px;overflow:auto"><table id="dlTable"><thead><tr><th>일자</th><th>발전량(kWh)</th><th>발전시간(h)</th><th>이용률(%)</th><th>예상수익(원)</th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </div>
+  <div id="pv-inv" class="hidden">
+    <div class="card">
+      <div class="row" style="margin-bottom:8px;flex-wrap:wrap;">
+        <h3 style="margin:0;">인버터별 발전량 (kWh)</h3>
+        <select id="invPeriod"><option value="d">일별 (2026년 7월)</option><option value="m">월별 (2026년)</option><option value="y">연간 (최근 5년)</option></select>
+      </div>
+      <div style="height:260px"><canvas id="chInv"></canvas></div>
+    </div>
+    <div class="card" style="margin-top:12px;"><h3 id="invDetailTitle">일별 상세 (kWh · 당일 수익)</h3>
+      <div class="tablewrap"><table id="invTable"><thead></thead><tbody></tbody></table></div></div>
+  </div>
+  <div id="pv-sites" class="hidden">
+    <div class="card">
+      <h3 data-i18n="pvs_out_title">사이트별 실시간 출력 현황</h3>
+      <div style="height:280px"><canvas id="chSitesBar"></canvas></div>
+    </div>
+    <div class="card" style="margin-top:12px;">
+      <h3 data-i18n="pvs_table_title">사이트별 출력·발전량·수익 (보유 발전소 전체)</h3>
+      <div class="tablewrap"><table id="sitesOutTable"><thead><tr>
+        <th data-i18n="th_site">사이트</th><th data-i18n="th_cap">용량(kW)</th><th data-i18n="th_curout">현재출력(kW)</th><th data-i18n="th_genrate">발전률(%)</th>
+        <th data-i18n="th_today_e">금일 발전량(kWh)</th><th data-i18n="th_today_h">금일 발전시간(h)</th><th data-i18n="th_today_rev">금일 수익(원)</th><th data-i18n="th_status">상태</th>
+      </tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="card adminOnly" style="margin-top:12px;">
+      <h3 data-i18n="pvs_int_title">통합 모니터링 사용자 현황 — 발전주(통합계정)별 집계</h3>
+      <div class="small" style="margin-bottom:8px;" data-i18n="pvs_int_desc">여러 발전소를 보유한 통합 계정 사용자의 발전소 전체를 묶어 실시간 집계합니다.</div>
+      <div class="tablewrap"><table id="intMonTable"><thead><tr>
+        <th data-i18n="th_owner">발전주(계정)</th><th data-i18n="th_sitecnt">보유 발전소</th><th data-i18n="th_cap">용량(kW)</th><th data-i18n="th_curout">현재출력(kW)</th>
+        <th data-i18n="th_genrate">발전률(%)</th><th data-i18n="th_today_e">금일 발전량(kWh)</th><th data-i18n="th_today_rev">금일 수익(원)</th><th data-i18n="th_alarm">경보</th>
+      </tr></thead><tbody></tbody></table></div>
+    </div>
+  </div>
+</section>
+
+<!-- 사이트 상세 -->
+<section id="v-site" class="hidden">
+  <div class="row" style="margin-bottom:10px;flex-wrap:wrap;">
+    <h2 class="sec" style="margin:0;" data-i18n="site_title">사이트 상세</h2>
+    <select id="siteSel"></select>
+    <span class="badge b-info" id="siteCap" style="font-size:13px;"></span>
+    <span class="badge" id="siteBadge"></span>
+    <span class="badge b-org" id="siteType"></span>
+    <div class="spacer"></div>
+    <button class="btn btn-red" id="btnTrip">⚡ <span data-i18n="site_tripall">전체 차단/정지</span></button>
+  </div>
+  <div class="small" id="siteAc" style="margin-bottom:6px;color:var(--sub)"></div>
+  <div class="small" style="margin-bottom:10px;color:var(--sub)">※ 그래프 위 마우스: 상세정보 창 · 휠 스크롤: 확대/축소</div>
+  <div class="grid two5">
+    <div class="card">
+      <div class="row" style="margin-bottom:4px;"><h3 id="hCur" style="margin:0;">스트링 채널 전류 (A)</h3><div class="spacer"></div>
+        <span class="small" style="margin-top:0">인버터 선택</span><select id="chartInvSel" onchange="selInv(+this.value)" style="padding:4px 8px;font-size:12px;"></select></div>
+      <canvas id="chCurrent"></canvas></div>
+    <div class="card"><h3 id="hVolt">스트링 채널 전압 (V)</h3><canvas id="chVolt"></canvas></div>
+    <div class="card"><h3>출력 전력 (kW)</h3><canvas id="chPow"></canvas></div>
+    <div class="card"><h3>내부온도 (°C) / 아크 이벤트</h3><canvas id="chTemp"></canvas></div>
+  </div>
+  <div class="card" style="margin-top:12px;">
+    <div class="row" style="flex-wrap:wrap;margin-bottom:8px;">
+      <h3 id="hStr" style="margin:0;">인버터 · 스트링 채널 현황 (수동 격리/재투입)</h3>
+      <div class="spacer"></div>
+      <div id="invTabs" class="row" style="flex-wrap:wrap;gap:6px;"></div>
+    </div>
+    <div class="row" style="flex-wrap:wrap;margin-bottom:8px;" id="invCtrlRow">
+      <span class="small" style="margin-top:0" id="invSumLine">-</span>
+      <div class="spacer"></div>
+      <button class="btn btn-red" id="btnInvStop" style="padding:6px 12px;">인버터 정지</button>
+      <button class="btn btn-blue" id="btnInvStart" style="padding:6px 12px;">인버터 재기동</button>
+    </div>
+    <div class="small" style="margin-bottom:8px;color:var(--sub)" data-i18n="site_str_note">※ 자동 대응이 아닌 <b>수동 원격 제어</b>입니다. 스트링 채널은 수신 신호에 따라 자동 생성되며(12·18·24채널 등), 채널별로 개별 격리·재투입할 수 있습니다.</div>
+    <div class="tablewrap"><table id="strTable"><thead><tr><th id="thDev">스트링 채널</th><th data-i18n="th_volt">전압(V)</th><th data-i18n="th_amp">전류(A)</th><th data-i18n="th_kw">출력(kW)</th><th data-i18n="th_temp">온도(°C)</th><th data-i18n="th_ins">절연저항(MΩ)</th><th data-i18n="th_status">상태</th><th data-i18n="th_remote">원격 조치</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="card" style="margin-top:12px;">
+    <div class="row" style="flex-wrap:wrap;margin-bottom:8px;">
+      <h3 style="margin:0;" data-i18n="as_title">A/S · 정비 관리 (이 발전소)</h3>
+      <div class="spacer"></div>
+      <select id="asType"><option>정기점검</option><option>고장수리</option><option>부품교체</option><option>모듈세척</option><option>기타</option></select>
+      <input type="text" id="asDesc" placeholder="정비 내용" style="width:200px">
+      <button class="btn btn-org" onclick="addAS()" data-i18n="as_add">정비 접수</button>
+    </div>
+    <div class="grid cards4" id="asKpi"></div>
+    <div class="tablewrap" style="margin-top:10px;"><table id="asTable"><thead><tr><th data-i18n="th_date">접수일</th><th data-i18n="th_site">현장</th><th data-i18n="th_type">구분</th><th data-i18n="th_desc">내용</th><th data-i18n="th_mgr">담당</th><th data-i18n="th_status">상태</th><th data-i18n="th_action">조치</th></tr></thead><tbody></tbody></table></div>
+  </div>
+</section>
+
+<!-- ESS·EV -->
+<section id="v-essev" class="hidden">
+  <h2 class="sec" data-i18n="ee_title">ESS · EV 충전 통합 관제</h2>
+  <div class="aibox" style="margin-bottom:12px;">
+    <b data-i18n="ee_sched_title">ESS 운전 스케줄:</b> <span data-i18n="ee_sched_desc">충전 10:00 ~ 15:00 (태양광 최대 발전 시간대) · 방전 15:00 ~ 익일 10:00 (SMP 정산). 스케줄 자동운전 중이며 수동 전환 시 해당 시간대만 우선 적용됩니다.</span>
+  </div>
+  <div class="grid cards4" id="eeKpi"></div>
+  <div class="grid two" style="margin-top:12px;">
+    <div class="card"><h3 data-i18n="ee_ess_title">ESS 현황·제어 (SOC·SOH·PCS·셀온도)</h3><div id="essList"></div></div>
+    <div class="card">
+      <h3 data-i18n="ee_essrev_title">ESS 방전 수익 (15:00 ~ 익일 10:00 방전분 × SMP)</h3>
+      <div class="grid cards4" id="essRevCards" style="grid-template-columns:repeat(2,1fr);"></div>
+      <div class="tablewrap" style="margin-top:10px;"><table id="essRevTable"><thead><tr>
+        <th>ESS</th><th data-i18n="th_site">사이트</th><th data-i18n="th_disch_today">금일 방전량(kWh)</th><th data-i18n="th_disch_rev">금일 방전수익(원)</th><th data-i18n="th_disch_month">월 누적 수익(원)</th><th data-i18n="th_cycles">누적 사이클</th>
+      </tr></thead><tbody></tbody></table></div>
+      <div class="small" style="margin-top:8px;" data-i18n="ee_essrev_note">※ 방전수익 = 방전량 × SMP 단가. REC 가중치(ESS 연계 5.0 등)는 계정관리 &gt; 수익 정산 설정에서 변경할 수 있습니다.</div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:12px;"><h3 data-i18n="ee_ev_title">EV 충전기 현황·제어</h3>
+    <div class="tablewrap"><table id="evTable"><thead><tr><th data-i18n="th_charger">충전기</th><th data-i18n="th_site">사이트</th><th data-i18n="th_status">상태</th><th data-i18n="th_kw">출력(kW)</th><th data-i18n="th_session">세션(kWh)</th><th data-i18n="th_action">조치</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="grid two" style="margin-top:12px;">
+    <div class="card">
+      <h3 data-i18n="ee_evom_title">EV 관리 O&amp;M — 충·방전 횟수·용량·결제·BMS 연동</h3>
+      <div class="tablewrap"><table id="evOmTable"><thead><tr>
+        <th data-i18n="th_charger">충전기</th><th data-i18n="th_chg_cnt">충전 횟수</th><th data-i18n="th_v2g_cnt">방전(V2G) 횟수</th><th data-i18n="th_cum_kwh">누적 충전량(kWh)</th><th data-i18n="th_cum_v2g">누적 방전량(kWh)</th><th data-i18n="th_pay_today">금일 결제(원)</th><th data-i18n="th_bms">BMS 연동</th>
+      </tr></thead><tbody></tbody></table></div>
+      <div class="small" style="margin-top:8px;" data-i18n="ee_bms_note">※ BMS 연동: 차량·충전기 배터리관리시스템(BMS)과 OCPP 2.0.1 / ISO 15118 프로토콜로 SOC·SOH·셀온도를 수신합니다.</div>
+    </div>
+    <div class="card">
+      <h3 data-i18n="ee_pay_title">EV 결제 시스템 관리</h3>
+      <div class="row" style="flex-wrap:wrap;margin-bottom:10px;">
+        <span class="small" style="margin-top:0" data-i18n="ee_pay_member">회원단가(원/kWh)</span><input type="number" id="evPriceM" value="292" style="width:85px">
+        <span class="small" style="margin-top:0" data-i18n="ee_pay_guest">비회원단가(원/kWh)</span><input type="number" id="evPriceG" value="347" style="width:85px">
+        <button class="btn btn-blue" onclick="saveEvPrice()" data-i18n="btn_apply">적용</button>
+      </div>
+      <div class="grid cards4" id="evPayCards" style="grid-template-columns:repeat(2,1fr);"></div>
+      <div class="small" style="margin-top:8px;" data-i18n="ee_pay_note">※ 정식판: PG(카드·간편결제) 연동, 회원 앱 QR 인증, 로밍(환경부·한전
+KEPCO) 정산 연계.</div>
+    </div>
+  </div>
+  <div class="aibox" style="margin-top:12px;"><b data-i18n="ee_ai_title">AI 에너지 최적화 연계(정식판):</b> <span data-i18n="ee_ai_desc">SMP 고가 시간대 ESS 방전, 화재 위험 시 ESS·EV 즉시 정지, 피크컷, V2G 입찰 자동화.</span></div>
+</section>
+
+<!-- AI 예지·자동대응 -->
+<section id="v-ai" class="hidden">
+  <h2 class="sec">AI 화재·고장 예지 및 자동 대응</h2>
+  <div class="grid three" id="aiCards"></div>
+  <div class="card" style="margin-top:12px;">
+    <h3>경고 이력 (누적 · 최신순) — 행 클릭 시 해당 발전소 보고서로 이동</h3>
+    <div class="tablewrap"><table id="aiAlarmTable"><thead><tr><th>시각</th><th>사이트</th><th>등급</th><th>위험도</th><th>내용</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="card" style="margin-top:12px;">
+    <h3>AI 위험도 산정 지표 · 범례 <span class="small" style="font-weight:400">(KEC·IEC 62446-1·IEC 62109-2·UL 1699B 기반 — 상세 근거는 docs/AI 위험도 보고서 참조)</span></h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>지표 (근거 규격)</th><th>정상</th><th>주의</th><th>위험</th><th>가중치</th></tr></thead>
+      <tbody>
+        <tr><td>어레이 절연저항 (KEC 132·IEC 62446-1)</td><td>5 MΩ 초과</td><td>1~5 MΩ</td><td>1 MΩ 미만 (법정 최소기준 미달)</td><td>20%</td></tr>
+        <tr><td>직렬 아크 검출 AFCI (UL 1699B)</td><td>0회</td><td>1~2회/일</td><td>3회/일 이상 또는 연속 검출</td><td>20%</td></tr>
+        <tr><td>DC 잔류·누설전류 RCMU (IEC 62109-2)</td><td>10 mA 미만</td><td>10~30 mA</td><td>30 mA 초과 (급변 30mA/s 포함)</td><td>15%</td></tr>
+        <tr><td>단자·커넥터 온도상승 열화상 (주위대비 ΔT)</td><td>ΔT 20 K 미만</td><td>ΔT 20~40 K</td><td>ΔT 40 K 초과 (전기설비 열화상 판정)</td><td>15%</td></tr>
+        <tr><td>접속반·인버터 내부온도</td><td>50 °C 미만</td><td>50~65 °C</td><td>65 °C 초과 (부품 정격·난연 한계)</td><td>10%</td></tr>
+        <tr><td>동일 인버터 내 스트링 전류 편차</td><td>6% 미만</td><td>6~15%</td><td>15% 초과 (음영 제외 시 고장 추정)</td><td>10%</td></tr>
+        <tr><td>지락 검출 GFDI 동작</td><td>0회</td><td>경보 1회(자동복귀)</td><td>차단 동작 또는 반복 경보</td><td>10%</td></tr>
+      </tbody>
+    </table></div>
+    <div class="row" style="margin-top:10px;flex-wrap:wrap;">
+      <span class="badge b-ok">0~49 정상 (일상 감시)</span><span class="badge b-warn">50~69 주의 (웹·앱 경보, 점검 권고)</span>
+      <span class="badge b-danger">70~84 위험 (SMS·전화 다채널 통보, 현장 확인)</span><span class="badge b-danger" style="border:1px solid var(--red)">85 이상 차단 (자동차단 임계값 설정 가능)</span>
+      <span class="badge b-ok" style="border:1px solid var(--green)">75 이하 회복 + 절연 확인 시 복구</span>
+    </div>
+  </div>
+  <div class="card adminOnly" style="margin-top:12px;">
+    <h3>자동 대응 설정 (관리자 전용)</h3>
+    <div class="row" style="flex-wrap:wrap;">
+      <span class="small" style="margin-top:0">기본 발전주</span><input type="text" id="inPhone" value="010-1234-5678" style="width:120px">
+      <span class="small" style="margin-top:0">서버운영자</span><input type="text" id="inOp" value="010-9876-5432" style="width:120px">
+      <span class="small" style="margin-top:0">안전관리자</span><input type="text" id="inSafe" value="010-5555-6666" style="width:120px">
+      <label class="ck"><input type="checkbox" id="ckSms" checked> 문자</label>
+      <label class="ck"><input type="checkbox" id="ckKakao" checked> 카카오톡</label>
+      <label class="ck"><input type="checkbox" id="ckCall" checked> 전화(ARS)</label>
+      <label class="ck"><input type="checkbox" id="ckVoice" checked> 관제 음성(TTS)</label>
+      <label class="ck"><input type="checkbox" id="ckPush" checked> 웹 통보(문자형 푸시)</label>
+      <span class="small" style="margin-top:0">자동차단</span><input type="number" id="inAuto" value="85" min="50" max="99" style="width:65px">
+      <span class="small" style="margin-top:0">자동복구</span><input type="number" id="inRestoreAt" value="75" min="10" max="84" style="width:65px">
+      <label class="ck"><input type="checkbox" id="ckRestore" checked> 자동복구 사용</label>
+    </div>
+  </div>
+  <div class="card userOnly" style="margin-top:12px;">
+    <h3>내 알림 채널 설정</h3>
+    <div class="row" style="flex-wrap:wrap;">
+      <label class="ck"><input type="checkbox" id="myWeb" checked disabled> 웹 경보(기본)</label>
+      <label class="ck"><input type="checkbox" id="mySms"> 문자(SMS)</label>
+      <label class="ck"><input type="checkbox" id="myKakao"> 카카오톡</label>
+      <label class="ck"><input type="checkbox" id="myCall"> 전화(ARS)</label>
+      <label class="ck"><input type="checkbox" id="myPush"> 웹 통보(문자형 푸시)</label>
+      <button class="btn btn-blue" onclick="saveMyCh()">저장</button>
+    </div>
+  </div>
+  <div class="card" style="margin-top:12px;">
+    <div class="row" style="margin-bottom:8px;flex-wrap:wrap;"><h3 style="margin:0">위험도 추이</h3><select id="riskSel"><option value="all">전체 사이트</option></select><span class="small" style="margin-top:0">· 시간축(최근)</span></div><canvas id="chRisk"></canvas>
+    <div class="aibox" id="aiExplain"></div>
+  </div>
+</section>
+
+<!-- 경보 -->
+<section id="v-alarm" class="hidden">
+  <div class="row" style="margin-bottom:12px;flex-wrap:wrap;"><h2 class="sec" style="margin:0;">경보 이력</h2>
+    <select id="alarmSel"><option value="all">전체 발전소</option></select>
+    <div class="spacer"></div>
+    <button class="btn btn-ghost" onclick="ackAll()">전체 확인</button></div>
+  <div class="card"><div class="tablewrap"><table id="alarmTable"><thead><tr><th>시각</th><th>사이트</th><th>등급</th><th>내용</th><th>위험도</th><th>상태</th><th>조치</th></tr></thead><tbody></tbody></table></div></div>
+  <div class="card" style="margin-top:12px;"><h3>알림 발송 이력</h3>
+    <div class="tablewrap"><table id="notiTable"><thead><tr><th>시각</th><th>사이트</th><th>수신자</th><th>채널</th><th>내용</th><th>상태</th></tr></thead><tbody></tbody></table></div></div>
+</section>
+
+<!-- 보고서 -->
+<section id="v-report" class="hidden">
+  <div class="row" style="margin-bottom:12px;flex-wrap:wrap;" id="repToolbar"><h2 class="sec" style="margin:0;" id="repTitle">월간 운영 보고서</h2>
+    <select id="repSel"><option value="all">전체 발전소</option></select>
+    <select id="repPeriod">
+      <option value="m">월간 (2026년 6월)</option>
+      <option value="q">분기 (2026년 2분기)</option>
+      <option value="h">반기 (2026년 상반기)</option>
+      <option value="y">연간 (2026년)</option>
+    </select>
+    <div class="spacer"></div>
+    <button class="btn btn-blue" onclick="window.print()">인쇄/PDF</button>
+    <button class="btn btn-ghost" onclick="exportCSV()">CSV</button></div>
+
+  <div id="repDocHead" class="card" style="margin-bottom:12px;">
+    <div class="row" style="align-items:flex-start;">
+      <div>
+        <div class="logo" style="font-size:20px;">DASAR<span class="o">O</span>N <span style="color:var(--orange);font-size:13px;font-weight:700;">Solar Guard</span></div>
+        <div style="font-size:22px;font-weight:800;margin-top:6px;" id="repDocTitle">발전소 운영 보고서</div>
+        <div class="small" id="repDocMeta">-</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="small" style="text-align:right" id="repDocDate">-</div>
+    </div>
+    <div class="aibox" id="repSummary" style="margin-top:10px;"></div>
+  </div>
+
+  <div class="grid cards4">
+    <div class="card"><h3 id="rEt">발전량</h3><div class="big" id="rEnergy">-</div><div class="small">선택 기간 합산</div></div>
+    <div class="card"><h3>예상수익 (SMP+REC)</h3><div class="big rev" id="rRev">-</div><div class="small">정산 추정</div></div>
+    <div class="card"><h3>이용률 (Capacity Factor)</h3><div class="big" id="rCF">-</div><div class="small">발전량 / (용량×시간)</div></div>
+    <div class="card"><h3>성능비 (PR)</h3><div class="big" id="rPR">-</div><div class="small">시스템 종합 성능</div></div>
+    <div class="card"><h3>가동률 (Availability)</h3><div class="big kpi-ok" id="rAvail">-</div><div class="small">운전 가능시간 비율</div></div>
+    <div class="card"><h3>CO₂ 감축</h3><div class="big kpi-ok" id="rCO2">-</div><div class="small">계수 0.4594</div></div>
+    <div class="card"><h3>경보 / 사전예방</h3><div class="big" id="rAlarm">-</div><div class="small">사전조치 <span id="rPrevent">-</span></div></div>
+    <div class="card"><h3>다운타임</h3><div class="big" id="rDown">-</div><div class="small">추정 정지시간</div></div>
+  </div>
+
+  <div class="card" style="margin-top:12px;"><h3>월별 발전 실적 (월 기준 · 분기/연간 자동 집계)</h3>
+    <div class="tablewrap"><table id="repMonthly"><thead><tr><th>구분</th><th>발전량(MWh)</th><th>이용률(%)</th><th>성능비 PR(%)</th><th>가동률(%)</th><th>CO₂(t)</th><th>수익(원)</th></tr></thead><tbody></tbody></table></div>
+    <div class="small" style="margin-top:6px;">※ 인쇄(PDF) 시 12개월 + 분기(Q1~Q4) 소계 + 연간 합계가 모두 출력됩니다.</div>
+  </div>
+
+  <div class="card" style="margin-top:12px;"><h3>발전소별 실적</h3>
+    <div class="tablewrap"><table id="repTable"><thead><tr><th>사이트</th><th>용량(kW)</th><th>발전량(kWh)</th><th>이용률(%)</th><th>PR(%)</th><th>CO₂(kg)</th><th>수익(원)</th><th>경보</th><th>가동률(%)</th></tr></thead><tbody></tbody></table></div>
+  </div>
+
+  <div class="card" style="margin-top:12px;"><h3>이벤트 · 조치 내역 (누적 경보이력 전체)</h3>
+    <div class="tablewrap" style="max-height:480px;overflow:auto"><table id="repEvents"><thead><tr><th>시각</th><th>사이트</th><th>등급</th><th>내용</th><th>위험도</th><th>조치/결과</th></tr></thead><tbody></tbody></table></div>
+  </div>
+</section>
+
+<!-- 계정·고객관리 (통합) -->
+<section id="v-acct" class="hidden">
+  <h2 class="sec">계정 · 고객 관리 (관리자 전용)</h2>
+  <div class="grid two">
+    <div class="card">
+      <h3 id="acTitle">신규 발전주 계정 등록</h3>
+      <div class="row" style="flex-wrap:wrap;margin-bottom:8px;">
+        <input type="text" id="acId" placeholder="아이디" style="width:110px">
+        <input type="text" id="acPw" placeholder="비밀번호" style="width:110px">
+        <input type="text" id="acName" placeholder="이름(발전주명)" style="width:130px">
+      </div>
+      <div class="small" style="margin:4px 0;">연락처 (총 3개 — 경보·통보 발송 대상)</div>
+      <div class="row" style="flex-wrap:wrap;margin-bottom:8px;">
+        <input type="text" id="acPhone" placeholder="메인 전화번호" style="width:140px">
+        <input type="text" id="acPhone2" placeholder="서브 전화번호" style="width:140px">
+        <input type="text" id="acSafe" placeholder="안전관리자 연락처" style="width:150px">
+      </div>
+      <div class="small" style="margin:4px 0;">소유 발전소 (2개 이상 = 통합 계정)</div>
+      <div id="acSites" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;"></div>
+      <div class="small" style="margin:4px 0;">통보 채널</div>
+      <div class="row" style="flex-wrap:wrap;margin-bottom:10px;">
+        <label class="ck"><input type="checkbox" id="acSms" checked> 문자</label>
+        <label class="ck"><input type="checkbox" id="acKakao" checked> 카카오톡</label>
+        <label class="ck"><input type="checkbox" id="acCall" checked> 전화(ARS)</label>
+      </div>
+      <div class="row">
+        <button class="btn btn-org" id="btnAcSave" onclick="addAcct()">계정 등록</button>
+        <button class="btn btn-ghost hidden" id="btnAcCancel" onclick="cancelEdit()">수정 취소</button>
+      </div>
+      <div class="small" style="margin-top:8px;">신규 등록 시 발전주·안전관리자에게 발급 안내가 통보됩니다.</div>
+    </div>
+    <div class="card">
+      <h3>전체 계정 목록</h3>
+      <input type="text" id="acSearch" placeholder="검색: 이름·아이디·발전소명·연락처" style="width:100%;margin-bottom:10px;" oninput="renderAcct()">
+      <div class="tablewrap"><table id="acctTable"><thead><tr><th>ID</th><th>비밀번호</th><th>이름</th><th>메인 전화</th><th>서브 전화</th><th>안전관리자</th><th>유형</th><th>발전소</th><th>채널</th><th>관리</th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:12px;">
+    <h3>신규 발전소 등록 — 발전소 정보 기재 + 발전주 계정 동시 발급</h3>
+    <div class="small" style="margin-bottom:8px;color:var(--sub)">발전소 정보를 모두 기재하면 지도·모니터링·보고서에 즉시 반영됩니다. 아래 계정 정보를 함께 입력하면 해당 발전소의 발전주 계정이 동시에 등록됩니다.</div>
+    <div class="row" style="flex-wrap:wrap;margin-bottom:8px;">
+      <input type="text" id="npName" placeholder="발전소명" style="width:170px">
+      <input type="number" id="npCap" placeholder="설비용량(kW)" step="0.1" style="width:120px">
+      <select id="npType"><option value="jb">접속반형 (RS-485)</option><option value="inv">스트링 인버터형</option></select>
+      <input type="number" id="npInv" placeholder="인버터 대수" min="1" max="20" value="3" style="width:110px">
+      <input type="text" id="npCod" placeholder="준공일 YYYY-MM-DD" style="width:150px">
+    </div>
+    <div class="row" style="flex-wrap:wrap;margin-bottom:8px;">
+      <input type="text" id="npAddr" placeholder="주소 (예: 경북 봉화군 …)" style="width:260px">
+      <input type="number" id="npLat" placeholder="위도 (예: 36.8930)" step="0.0001" style="width:130px">
+      <input type="number" id="npLng" placeholder="경도 (예: 128.7326)" step="0.0001" style="width:130px">
+      <select id="npComm"><option>RS-485</option><option>Modbus TCP/IP</option><option>LoRa WAN</option><option>ZigBee</option></select>
+    </div>
+    <div class="small" style="margin:4px 0;">발전주 계정 동시 등록 (선택 — 비워두면 발전소만 등록)</div>
+    <div class="row" style="flex-wrap:wrap;margin-bottom:10px;">
+      <input type="text" id="npAcId" placeholder="아이디" style="width:110px">
+      <input type="text" id="npAcPw" placeholder="비밀번호" style="width:110px">
+      <input type="text" id="npAcName" placeholder="발전주명" style="width:130px">
+      <input type="text" id="npAcPhone" placeholder="메인 전화번호" style="width:140px">
+      <input type="text" id="npAcPhone2" placeholder="서브 전화번호" style="width:140px">
+      <input type="text" id="npAcSafe" placeholder="안전관리자 연락처" style="width:150px">
+    </div>
+    <button class="btn btn-org" onclick="addPlant()">발전소 등록</button>
+  </div>
+  <div class="card" style="margin-top:12px;">
+    <h3>수익 정산 설정 (SMP · REC · 가중치)</h3>
+    <div class="row" style="flex-wrap:wrap;">
+      <span class="small" style="margin-top:0">SMP(원/kWh)</span><input type="number" id="acSmp" step="0.01" style="width:95px">
+      <span class="small" style="margin-top:0">REC(원/REC)</span><input type="number" id="acRec" step="1" style="width:105px">
+      <span class="small" style="margin-top:0">REC 가중치</span><input type="number" id="acRecw" step="0.1" min="0.5" max="5" style="width:80px">
+      <button class="btn btn-blue" onclick="saveAcctPrice()">저장·전체 적용</button>
+    </div>
+    <div class="small" style="margin-top:8px;">가중치 참고: 일반부지 1.0~1.2 · 건축물 이용 1.5 · 임야 0.5 · ESS 연계 5.0(’20년 이전). 저장 시 발전 모니터링·보고서·ESS 방전수익에 즉시 반영됩니다.</div>
+  </div>
+  <div class="card" style="margin-top:12px;">
+    <h3>통합 계정 관리 — 여러 발전소를 묶어 관리하는 사용자 (별도 관리창)</h3>
+    <div class="tablewrap"><table id="intTable"><thead><tr><th>ID</th><th>이름</th><th>전화번호</th><th>보유 발전소 수</th><th>총 설비용량(kW)</th><th>보유 발전소</th><th>관리</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="card" style="margin-top:12px;">
+    <div class="row" style="flex-wrap:wrap;margin-bottom:8px;">
+      <h3 style="margin:0;">고객 · 현장 정보 (고객관리 통합)</h3>
+      <div class="spacer"></div>
+      <input type="text" id="cusSearch" placeholder="검색: 고객명·현장·연락처·지역" oninput="renderCustomer()" style="width:260px">
+    </div>
+    <div class="grid cards4" id="cusKpi"></div>
+    <div class="tablewrap" style="margin-top:10px;"><table id="cusTable"><thead><tr><th>고객(발전주)</th><th>연락처</th><th>보유 현장</th><th>총 용량</th><th>모델 / 패키지</th><th>지역</th><th>관리</th></tr></thead><tbody></tbody></table></div>
+  </div>
+</section>
+
+<!-- 설정 -->
+<section id="v-admin" class="hidden">
+  <h2 class="sec">설정 · 장비/연동 관리</h2>
+  <div class="card" style="margin-bottom:12px;">
+    <div class="row" style="flex-wrap:wrap;">
+      <h3 style="margin:0" data-i18n="set_lang">언어 / 환경설정</h3>
+      <div class="spacer"></div>
+      <span class="small" style="margin-top:0" data-i18n="set_language">언어</span>
+      <select id="langSel"></select>
+      <button class="btn btn-ghost" onclick="resetSettings()" data-i18n="set_reset">기본값으로 되돌리기</button>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:12px;">
+    <div class="row" style="flex-wrap:wrap;">
+      <h3 style="margin:0;">🔒 보안 설정</h3>
+      <div class="spacer"></div>
+      <span class="small" style="margin-top:0">무활동 자동 로그아웃</span>
+      <select id="idleSel"><option value="10">10분</option><option value="30">30분</option><option value="60">60분</option><option value="0">사용 안 함</option></select>
+      <button class="btn btn-blue" onclick="saveIdle()">저장</button>
+    </div>
+    <div class="small" style="margin-top:8px;line-height:1.8">
+      적용 중인 보안: <span class="badge b-ok">비밀번호 SHA-256 해시 저장(평문 미저장)</span> <span class="badge b-ok">로그인 5회 실패 시 60초 잠금</span>
+      <span class="badge b-ok">위험 제어 2단계 확인</span> <span class="badge b-ok">무활동 자동 로그아웃</span> <span class="badge b-ok">CSP 스크립트 출처 제한</span>
+      <br>정식판 추가 예정: 서버 인증(세션 토큰·HTTPS 필수), 2단계 인증(OTP), 장치 인증서(mTLS), 원격 제어 2인 승인, 권한별 감사로그 DB 보관.
+    </div>
+    <h3 style="margin:12px 0 6px;">보안 이벤트 로그 (이 세션)</h3>
+    <div class="tablewrap" style="max-height:220px;overflow:auto"><table id="secLogTable" style="min-width:0"><thead><tr><th>시각</th><th>이벤트</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="grid two">
+    <div class="card">
+      <div class="row" style="flex-wrap:wrap;margin-bottom:8px;">
+        <h3 style="margin:0">등록 사이트 · 장비 관리</h3>
+        <div class="spacer"></div>
+        <input type="text" id="admSearch" placeholder="검색: 사이트명·유형·통신방식" oninput="renderAdm()" style="width:230px">
+      </div>
+      <div class="small" style="margin-bottom:6px;color:var(--sub)">※ 행/‘상세’ 클릭: 해당 발전소 상세·현재상태 이동 · ‘수정’: 정보 변경(계정관리 연동)</div>
+      <div class="tablewrap"><table id="admTable"><thead><tr><th>사이트</th><th>유형</th><th>용량</th><th>준공일</th><th>통신방식</th><th>상태</th><th>관리</th></tr></thead><tbody></tbody></table></div>
+      <div id="admEdit" style="display:none;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:10px;">
+        <h3 id="admEditTitle" style="margin-bottom:8px;">사이트 정보 수정</h3>
+        <div class="row" style="flex-wrap:wrap;">
+          <input type="hidden" id="admEditId">
+          <input type="text" id="admEditName" placeholder="발전소명" style="width:150px">
+          <input type="number" id="admEditCap" placeholder="용량(kW)" step="0.1" style="width:110px">
+          <input type="text" id="admEditCod" placeholder="준공일 YYYY-MM-DD" style="width:150px">
+          <select id="admEditComm"><option>RS-485</option><option>Modbus TCP/IP</option><option>LoRa WAN</option><option>ZigBee</option></select>
+          <button class="btn btn-org" onclick="saveAdm()">저장</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('admEdit').style.display='none'">취소</button>
+        </div>
+        <div class="small" style="margin-top:6px;">저장 시 계정관리·모니터링 전체에 함께 반영됩니다.</div>
+      </div>
+    </div>
+    <div class="card"><h3>외부 연동</h3>
+      <div class="tablewrap"><table style="min-width:0"><tbody>
+        <tr><td>한국에너지공단 REMS 전송</td><td style="text-align:right"><span class="badge b-ok">전송 정상</span></td></tr>
+        <tr><td>전력거래소(KPX) SMP·REC 시세</td><td style="text-align:right"><span class="badge b-info">연동 예정</span></td></tr>
+        <tr><td>카카오맵 실지도(위성)</td><td style="text-align:right"><span class="badge b-info">정식판</span></td></tr>
+        <tr><td>문자·알림톡·ARS 발송사 API</td><td style="text-align:right"><span class="badge b-info">정식판</span></td></tr>
+        <tr><td>기상청 동네예보 API (지역 기상정보)</td><td style="text-align:right"><span class="badge b-ok">연동</span></td></tr>
+        <tr><td>현장 기상센서 (일사량계·모듈온도·외기온·풍속)</td><td style="text-align:right"><span class="badge b-ok">연동</span></td></tr>
+        <tr><td>RTU 저장메모리 (72h 스토어&amp;포워드 — 통신 두절 시 로컬 기록, 재연결 시 이어서 동기화)</td><td style="text-align:right"><span class="badge b-ok">동작</span></td></tr>
+      </tbody></table></div>
+    </div>
+  </div>
+</section>
+</main>
+<div class="toast" id="toast"></div>
+<footer>Dasaron Solar Guard v2.2 — 내장 시뮬레이터 데모. RTU·인버터 실연동, DB, AI 학습모델, 발송 API, KPX·REMS·OCPP 연동은 정식 개발 범위. © 2026 DASARON</footer>
+
+<script>
+// ===== 오프라인 폴백: CDN(Chart.js) 로드 실패 시에도 앱이 동작하도록 무해한 스텁 제공 =====
+if(!window.Chart){
+  window.Chart = class{ constructor(el,cfg){ cfg=cfg||{}; this.data=cfg.data||{labels:[],datasets:[]}; this.options=cfg.options||{plugins:{title:{}},scales:{}}; } update(){} };
+  window.Chart.Tooltip = {positioners:{}};
+}
+// ================= 시뮬레이터 (전국 12개 사이트) =================
+const KAKAO_APPKEY='c449b6e8ef53e2f1a49e3419f30d4654'; // 카카오 JavaScript 키 — 항공 뷰(HYBRID) 기본. 미등록 도메인에서는 벡터지도(MapLibre)로 자동 폴백
+const SITES = [
+  {id:0,name:"서울 A초등학교",cap:99, boxes:4, base:0.72, deg:false, t:'jb', mx:234, my:205, lat:37.5665, lng:126.9780, cod:'2023-05-10'},
+  {id:1,name:"부산 B중학교",cap:150, boxes:6, base:0.68, deg:false, t:'jb', mx:468, my:535, lat:35.1796, lng:129.0756, cod:'2022-11-20'},
+  {id:2,name:"대전 C시청사",cap:250, boxes:8, base:0.70, deg:true, t:'jb', mx:279, my:373, lat:36.3504, lng:127.3845, cod:'2024-02-01'},
+  {id:3,name:"광주 D도서관",cap:80, boxes:3, base:0.74, deg:false, t:'inv', mx:219, my:538, lat:35.1595, lng:126.8526, cod:'2023-09-15'},
+  {id:4,name:"세종 E복지센터",cap:120, boxes:5, base:0.71, deg:false, t:'inv', mx:268, my:355, lat:36.4801, lng:127.2890, cod:'2024-06-01'},
+  {id:5,name:"디에스봉화1호 발전소",cap:474.7, boxes:12, base:0.70, deg:false, t:'jb', mx:430, my:298, lat:36.8930, lng:128.7326, cod:'2021-03-02'},
+  {id:6,name:"의정부 F물류센터",cap:300, boxes:9, base:0.69, deg:false, t:'jb', mx:240, my:181, lat:37.7381, lng:127.0338, cod:'2024-10-05'},
+  {id:7,name:"당진 G산업단지",cap:500, boxes:14, base:0.71, deg:false, t:'inv', mx:196, my:298, lat:36.8894, lng:126.6459, cod:'2025-11-01'},
+  {id:8,name:"전주 H스마트팜",cap:200, boxes:7, base:0.73, deg:false, t:'jb', mx:253, my:446, lat:35.8242, lng:127.1480, cod:'2023-04-18'},
+  {id:9,name:"창원 I산단지붕",cap:350, boxes:10, base:0.70, deg:false, t:'inv', mx:424, my:528, lat:35.2280, lng:128.6811, cod:'2022-07-22'},
+  {id:10,name:"포항 J물류창고",cap:180, boxes:6, base:0.68, deg:false, t:'jb', mx:499, my:419, lat:36.0190, lng:129.3435, cod:'2024-12-12'},
+  {id:11,name:"제주 K리조트",cap:250, boxes:8, base:0.75, deg:false, t:'inv', mx:183, my:767, lat:33.4996, lng:126.5312, cod:'2026-01-10'},
+];
+const NOW = new Date('2026-07-04');
+function daysRun(s){ const d=Math.floor((NOW - new Date(s.cod))/86400000); return Math.max(1, d); }
+function yearDays(s){ return Math.min(365, daysRun(s)); }
+const MAX_CH = 24;  // 인버터 1대당 최대 스트링 채널 수 — 채널은 수신 신호에 따라 자동 생성(12·18·24 등)
+function newStrCh(){ return {v:620+Math.random()*30, a:8+Math.random()*2, t:33+Math.random()*4, ins:60+Math.random()*20, bad:false, iso:false}; }
+function recalcOff(s){ s.invOff=[]; let o=0; for(let k=0;k<s.invN;k++){ s.invOff.push(o); o+=s.invCh[k]; } }
+function initSiteSim(s){
+  // 인버터 대수 → 인버터별 스트링 채널 자동 생성 (인버터=INV-n, 스트링 채널=ST-nn)
+  // 채널 수는 접속반/인버터에서 수신되는 스트링 신호 수에 따라 12·18·24채널 등으로 자동 결정
+  s.invN = s.invN || Math.max(2, Math.round(s.boxes/3)+1);
+  if(!s.invCh || s.invCh.length!==s.invN){
+    const opts=[12,18,18,24];
+    s.invCh = Array.from({length:s.invN},(_,k)=> opts[(s.id+k)%opts.length]);
+  }
+  recalcOff(s);
+  s.strings=[]; s.invTrip = Array.from({length:s.invN},()=>false);
+  const totCh = s.invCh.reduce((a,b)=>a+b,0);
+  for(let i=0;i<totCh;i++) s.strings.push(newStrCh());
+  s.temp=34; s.arc=0; s.risk=8+Math.random()*6; s.riskHist=[]; s.tripped=false; s.autoTripped=false;
+  s.ac={v:380,hz:60,pf:0.99};
+  s.kf = s.cap*0.72/(s.strings.length*620*9.5*s.base*1.3/1000);
+  s.energyToday = s.cap*(3.4+Math.random()*0.6);
+  s.cum = s.cap*3.8*daysRun(s)*s.base/0.72;         // 준공 후 누적 발전량(kWh)
+  s.comm = s.comm || (s.t==='inv' ? (s.id%3===0?'LoRa WAN':'Modbus TCP/IP') : 'RS-485');
+  s.region = s.region || (({0:'수도권',6:'수도권',7:'충청권',4:'충청권',2:'충청권',8:'호남권',3:'호남권',5:'영남권',9:'영남권',10:'영남권',1:'영남권',11:'제주권'})[s.id]||'기타');
+  s.group = s.group || (/초등학교|중학교|시청|도서관|복지/.test(s.name)?'공공기관': (/산업단지|물류|스마트팜|산단|창고/.test(s.name)?'산업시설':'민간사업'));
+  s.model = 'DSG-'+(s.t==='inv'?'S':'J')+Math.round(s.cap);
+  s.pkg = s.boxes;
+  s.netErr=false; s.commErr=false;
+  s.wx={irr:0, modT:s.temp, ambT:22, wind:1.5, reh:55, sky:1};
+  s.hourly = {today:[], yest:[]};
+  for(let h=0;h<24;h++){
+    const f = Math.max(0, Math.sin((h-5)/15*Math.PI));
+    s.hourly.yest.push(+(s.cap*f*(0.72+Math.random()*0.2)).toFixed(1));
+    s.hourly.today.push(h<=13 ? +(s.cap*f*(0.66+Math.random()*0.25)).toFixed(1) : 0);
+  }
+  s.invDaily = [];
+  for(let d=0; d<4; d++) s.invDaily.push(Array.from({length:s.invN},()=> Math.round(s.cap/s.invN*(3.2+Math.random()*1.6))));
+  const seas=[0.55,0.62,0.78,0.85,0.9,0.86,0.8,0.82,0.8,0.72,0.6,0.52];
+  s.invMonthly = seas.map(f=> Array.from({length:s.invN},()=> Math.round(s.cap/s.invN*3.9*30*f*(0.92+Math.random()*0.16))));
+  s.invYearly = [2021,2022,2023,2024,2025].map(y=> Array.from({length:s.invN},()=> (new Date(s.cod).getFullYear()<=y) ? Math.round(s.cap/s.invN*3.8*365*(0.9+Math.random()*0.2)) : 0));
+  return s;
+}
+// ===== 발전소 영속화: 신규 등록 발전소·정보 수정이 재로그인 후에도 유지 =====
+const BASE_N = SITES.length;
+let SITE_OVR = {}; try{ SITE_OVR=JSON.parse(localStorage.getItem('sg_siteovr')||'{}'); }catch(e){}
+const S = SITES.map(s=>{ const o=SITE_OVR[s.id]||{}; return initSiteSim({...s, ...o}); });
+function plantCfg(s){ return {name:s.name,cap:s.cap,boxes:s.boxes,base:s.base,deg:false,t:s.t,mx:s.mx,my:s.my,lat:s.lat,lng:s.lng,cod:s.cod,invN:s.invN,comm:s.comm,region:s.region,addr:s.addr||'',group:s.group}; }
+function savePlants(){ try{ localStorage.setItem('sg_plants', JSON.stringify(S.slice(BASE_N).map(plantCfg))); }catch(e){} }
+try{ JSON.parse(localStorage.getItem('sg_plants')||'[]').forEach(p=>{ p.id=S.length; S.push(initSiteSim(p)); }); }catch(e){}
+function invOf(s,i){ for(let k=s.invN-1;k>=0;k--){ if(i>=s.invOff[k]) return k; } return 0; }
+function chIdx(s,i){ return i - s.invOff[invOf(s,i)]; }
+function chName(s,i){ return 'INV'+(invOf(s,i)+1)+'-ST'+String(chIdx(s,i)+1).padStart(2,'0'); }
+// ESS 스케줄: 충전 10:00~15:00 (PV 피크) · 방전 15:00~익일 10:00 (SMP 정산)
+const ESS = [
+  {id:'ESS-01', site:5, cap:1000, soc:62, mode:'대기', p:0, temp:27, soh:97.2, cycles:412, cellT:26.8, pcs:'정상', auto:true, dischToday:310, dischMonth:8400},
+  {id:'ESS-02', site:2, cap:500, soc:48, mode:'충전', p:120, temp:29, soh:95.8, cycles:688, cellT:28.1, pcs:'정상', auto:true, dischToday:145, dischMonth:4020},
+  {id:'ESS-03', site:7, cap:2000, soc:71, mode:'방전', p:-600, temp:31, soh:98.6, cycles:205, cellT:29.4, pcs:'정상', auto:true, dischToday:640, dischMonth:16800},
+];
+let EV_PRICE = {member:292, guest:347};
+try{ const ep=JSON.parse(localStorage.getItem('sg_evprice')||'null'); if(ep) EV_PRICE=ep; }catch(e){}
+const EV = [
+  {id:'EV-A1', site:0, st:'충전중', kw:7,   ses:12.4, chgCnt:214, v2gCnt:0,  cumChg:2870,  cumV2g:0,    payToday:14200, member:true,  bms:{link:true, soh:96.4}},
+  {id:'EV-A2', site:0, st:'대기',   kw:0,   ses:0,    chgCnt:180, v2gCnt:0,  cumChg:2210,  cumV2g:0,    payToday:8400,  member:true,  bms:{link:true, soh:97.1}},
+  {id:'EV-B1', site:4, st:'충전중', kw:50,  ses:31.2, chgCnt:531, v2gCnt:38, cumChg:15400, cumV2g:920,  payToday:36100, member:false, bms:{link:true, soh:94.8}},
+  {id:'EV-B2', site:4, st:'점검',   kw:0,   ses:0,    chgCnt:402, v2gCnt:12, cumChg:11800, cumV2g:310,  payToday:0,     member:true,  bms:{link:false, soh:93.2}},
+  {id:'EV-C1', site:11,st:'충전중', kw:100, ses:18.5, chgCnt:842, v2gCnt:95, cumChg:30900, cumV2g:2400, payToday:52800, member:false, bms:{link:true, soh:95.5}},
+];
+let alarms=[], notis=[], t=0, curSite=2, prevented=17;
+
+// ================= 계정 =================
+let ACC = [
+  {id:'admin', pw:'1234', name:'다사론 관제센터', phone:'-', phone2:'-', safe:'-', sites:'all', role:'admin', chn:{sms:true,kakao:true,call:true}},
+  {id:'ds1', pw:'1234', name:'디에스 발전주', phone:'010-1111-2222', phone2:'010-1111-3333', safe:'010-5555-6666', sites:[5], role:'user', chn:{sms:true,kakao:true,call:true}},
+  {id:'hong', pw:'1234', name:'홍길동(통합)', phone:'010-3333-4444', phone2:'-', safe:'010-5555-7777', sites:[0,1,4], role:'user', chn:{sms:true,kakao:false,call:true}},
+  {id:'jeju', pw:'1234', name:'제주에너지(통합)', phone:'010-7777-8888', phone2:'-', safe:'010-5555-8888', sites:[3,8,11], role:'user', chn:{sms:true,kakao:true,call:false}},
+];
+try{ const sv=localStorage.getItem('sg_acc_v21'); if(sv){ const arr=JSON.parse(sv); if(Array.isArray(arr)&&arr.length) ACC=arr; } }catch(e){}
+ACC.forEach(a=>{ if(!a.chn) a.chn={sms:true,kakao:true,call:true}; if(!a.phone2) a.phone2='-'; if(!a.safe) a.safe='-'; });
+function saveAcc(){ try{ localStorage.setItem('sg_acc_v21', JSON.stringify(ACC)); }catch(e){} }
+let CUR=null, editingId=null;
+function isAdmin(){ return CUR && CUR.role==='admin'; }
+function mySites(){ return (CUR && CUR.sites!=='all') ? CUR.sites : S.map(s=>s.id); }
+function myS(){ const ms=mySites(); return S.filter(s=>ms.includes(s.id)); }
+function gotoView(v){ const b=document.querySelector(`nav button[data-v=${v}]`); if(b) b.click(); }
+// ===== 보안: 비밀번호 SHA-256 해시 저장 (WebCrypto, 비보안 컨텍스트는 FNV 폴백) =====
+const PW_SALT='dsg-v21-salt';
+async function pwHash(pw){
+  const msg=pw+'|'+PW_SALT;
+  try{
+    if(window.crypto && crypto.subtle){
+      const buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(msg));
+      return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+    }
+  }catch(e){}
+  let out='';
+  for(let sd=0;sd<4;sd++){ let h=(0x811c9dc5 ^ Math.imul(sd,0x9e3779b9))>>>0;
+    for(let i=0;i<msg.length;i++){ h^=msg.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; }
+    out+=h.toString(16).padStart(8,'0'); }
+  return out;
+}
+// 기존 평문 비밀번호 → 해시 마이그레이션 (평문은 즉시 폐기)
+(async function migratePw(){
+  let changed=false;
+  for(const a of ACC){ if(a.pw && !a.pwh){ a.pwh=await pwHash(a.pw); delete a.pw; changed=true; } }
+  if(changed) saveAcc();
+})();
+// ===== 보안: 이벤트 로그 (세션 단위 보관) =====
+let SECLOG=[]; try{ SECLOG=JSON.parse(sessionStorage.getItem('sg_seclog')||'[]'); }catch(e){}
+function secLog(ev){
+  SECLOG.unshift({t:new Date().toLocaleString('ko-KR'), ev}); if(SECLOG.length>50) SECLOG.pop();
+  try{ sessionStorage.setItem('sg_seclog', JSON.stringify(SECLOG)); }catch(e){}
+  renderSecLog();
+}
+function renderSecLog(){
+  const tb=document.querySelector('#secLogTable tbody'); if(!tb) return;
+  tb.innerHTML = SECLOG.slice(0,20).map(x=>'<tr><td style="white-space:nowrap">'+x.t+'</td><td>'+x.ev+'</td></tr>').join('') || '<tr><td colspan="2" class="small">보안 이벤트가 없습니다.</td></tr>';
+}
+// ===== 보안: 로그인 실패 잠금 (5회 실패 → 60초) =====
+let loginFails=0, lockUntil=0;
+try{ lockUntil=+localStorage.getItem('sg_lock')||0; }catch(e){}
+function loginOk(a){
+  CUR=a; loginFails=0;
+  document.getElementById('login').style.display='none';
+  document.getElementById('whoami').textContent = (a.role==='admin'?'관리자 · ':'발전주 · ') + a.name + (a.sites!=='all' && a.sites.length>1 ? ' · 통합' : '');
+  secLog('로그인 성공: '+a.id+' ('+(a.role==='admin'?'관리자':'발전주')+')');
+  armIdle();
+  applyRole(); render();
+  setTimeout(()=>{ if(typeof kakaoRelayout==='function') kakaoRelayout(); if(glMapObj){ try{ glMapObj.resize(); }catch(e){} } }, 200);
+}
+async function doLogin(){
+  if(Date.now()<lockUntil){ alert('보안: 로그인 시도가 잠겨 있습니다. '+Math.ceil((lockUntil-Date.now())/1000)+'초 후 다시 시도하세요.'); return; }
+  const id=document.getElementById('liId').value.trim(), pw=document.getElementById('liPw').value;
+  const h=await pwHash(pw);
+  const a=ACC.find(x=>x.id===id && (x.pwh===h || (x.pw && x.pw===pw)));
+  if(!a){
+    loginFails++;
+    secLog('로그인 실패: '+(id||'(빈 아이디)')+' — 누적 '+loginFails+'회');
+    if(loginFails>=5){
+      lockUntil=Date.now()+60000; loginFails=0;
+      try{ localStorage.setItem('sg_lock', lockUntil); }catch(e){}
+      secLog('로그인 5회 연속 실패 — 60초 잠금');
+      alert('보안: 5회 연속 실패로 60초간 로그인이 잠깁니다.');
+      return;
+    }
+    alert('아이디 또는 비밀번호가 올바르지 않습니다. ('+loginFails+'/5회 — 5회 실패 시 60초 잠금)'); return;
+  }
+  try{
+    // 보안: 비밀번호 평문은 저장하지 않음 — 아이디 + 해시 토큰만 저장
+    if(document.getElementById('liSave').checked || document.getElementById('liAuto').checked)
+      localStorage.setItem('sg_cred', JSON.stringify({id, token:a.pwh, auto: document.getElementById('liAuto').checked}));
+    else localStorage.removeItem('sg_cred');
+  }catch(e){}
+  loginOk(a);
+}
+function logout(){
+  try{ const c=JSON.parse(localStorage.getItem('sg_cred')||'null'); if(c){ c.auto=false; localStorage.setItem('sg_cred', JSON.stringify(c)); } }catch(e){}
+  location.reload();
+}
+document.getElementById('liPw').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+try{
+  const c=JSON.parse(localStorage.getItem('sg_cred')||'null');
+  if(c && c.id){
+    document.getElementById('liId').value=c.id;
+    document.getElementById('liSave').checked=true; document.getElementById('liAuto').checked=!!c.auto;
+    if(c.auto && c.token) setTimeout(()=>{
+      const a=ACC.find(x=>x.id===c.id && x.pwh===c.token);
+      if(a) loginOk(a); else secLog('자동 로그인 토큰 불일치: '+c.id);
+    }, 500);
+  }
+}catch(e){}
+// ===== 보안: 무활동 자동 로그아웃 (기본 30분, 설정에서 변경) =====
+let idleMin=30; try{ const iv=localStorage.getItem('sg_idle'); if(iv!==null) idleMin=+iv; }catch(e){}
+let idleTimer=null;
+function armIdle(){
+  if(idleTimer) clearTimeout(idleTimer);
+  if(!CUR || !idleMin) return;
+  idleTimer=setTimeout(()=>{ secLog('무활동 '+idleMin+'분 — 자동 로그아웃: '+(CUR?CUR.id:'')); alert('보안: 무활동으로 자동 로그아웃되었습니다.'); logout(); }, idleMin*60000);
+}
+['click','keydown'].forEach(ev=>document.addEventListener(ev, ()=>armIdle(), {passive:true}));
+function saveIdle(){
+  idleMin=+document.getElementById('idleSel').value;
+  try{ localStorage.setItem('sg_idle', idleMin); }catch(e){}
+  armIdle(); toast('무활동 자동 로그아웃: '+(idleMin?idleMin+'분':'사용 안 함'),'var(--blue)');
+  secLog('자동 로그아웃 설정 변경: '+(idleMin?idleMin+'분':'끔'));
+}
+function applyRole(){
+  document.querySelectorAll('.adminOnly').forEach(el=>el.classList.toggle('hidden', !isAdmin()));
+  document.querySelectorAll('.userOnly').forEach(el=>el.classList.toggle('hidden', isAdmin()));
+  rebuildSelectors();
+  const ms=mySites();
+  if(!ms.includes(pvSite)) pvSite=ms[0];
+  if(!ms.includes(curSite)) curSite=ms[0];
+  pvSel.value=pvSite; siteSel.value=curSite;
+  document.getElementById('kOrg').textContent = isAdmin() ? '기관: 다사론 관제센터(전체)' : '소유주: ' + CUR.name;
+  if(!isAdmin()){
+    document.getElementById('mySms').checked=!!CUR.chn.sms;
+    document.getElementById('myKakao').checked=!!CUR.chn.kakao;
+    document.getElementById('myCall').checked=!!CUR.chn.call;
+    document.getElementById('myPush').checked=!!CUR.chn.push;
+  }
+  if(isAdmin()) renderAcct();
+}
+function saveMyCh(){
+  CUR.chn={sms:document.getElementById('mySms').checked, kakao:document.getElementById('myKakao').checked, call:document.getElementById('myCall').checked, push:document.getElementById('myPush').checked};
+  if(CUR.chn.push) askPushPermission();
+  saveAcc(); toast('알림 채널 설정이 저장되었습니다.','var(--green)');
+}
+// ===== 웹 통보(문자형 푸시) — 브라우저 알림 API =====
+function askPushPermission(){
+  try{ if(window.Notification && Notification.permission==='default') Notification.requestPermission(); }catch(e){}
+}
+function webPush(site, msg){
+  try{
+    if(!window.Notification || Notification.permission!=='granted') return;
+    new Notification('Dasaron Solar Guard — '+site, {body:msg, icon:'./icon-192.png', tag:'dsg-'+site});
+  }catch(e){}
+}
+var _ckp=document.getElementById('ckPush'); if(_ckp) _ckp.addEventListener('change', ()=>{ if(_ckp.checked) askPushPermission(); });
+var _myp=document.getElementById('myPush'); if(_myp) _myp.addEventListener('change', ()=>{ if(_myp.checked) askPushPermission(); });
+function rebuildSelectors(){
+  const ms=mySites();
+  pvSel.innerHTML=''; siteSel.innerHTML='';
+  const rs=document.getElementById('repSel'), as=document.getElementById('alarmSel'), rk=document.getElementById('riskSel'), asx=document.getElementById('asSite');
+  rs.innerHTML='<option value="all">전체 발전소</option>'; as.innerHTML='<option value="all">전체 발전소</option>'; if(rk) rk.innerHTML='<option value="all">전체 사이트</option>'; if(asx) asx.innerHTML='';
+  S.filter(s=>ms.includes(s.id)).forEach(s=>{
+    const o1=document.createElement('option'); o1.value=s.id; o1.textContent=`${s.name} (${s.cap}kW)`; pvSel.appendChild(o1);
+    const o2=document.createElement('option'); o2.value=s.id; o2.textContent=s.name; siteSel.appendChild(o2);
+    const o3=document.createElement('option'); o3.value=s.id; o3.textContent=s.name; rs.appendChild(o3);
+    const o4=document.createElement('option'); o4.value=s.id; o4.textContent=s.name; as.appendChild(o4);
+    if(rk){ const o5=document.createElement('option'); o5.value=s.id; o5.textContent=s.name; rk.appendChild(o5); }
+    if(asx){ const o6=document.createElement('option'); o6.value=s.id; o6.textContent=s.name; asx.appendChild(o6); }
+  });
+}
+function renderAcct(){
+  const box=document.getElementById('acSites');
+  if(!box.dataset.built){
+    box.dataset.built='1';
+    S.forEach(s=>{ box.innerHTML += `<label class="ck"><input type="checkbox" class="acSite" value="${s.id}"> ${s.name}</label>`; });
+  }
+  const q=(document.getElementById('acSearch').value||'').trim().toLowerCase();
+  const tb=document.querySelector('#acctTable tbody'); tb.innerHTML='';
+  ACC.filter(a=>{
+    if(!q) return true;
+    const sites = a.sites==='all' ? '전체' : a.sites.map(i=>S[i].name).join(' ');
+    return (a.id+' '+a.name+' '+a.phone+' '+sites).toLowerCase().includes(q);
+  }).forEach(a=>{
+    const type = a.role==='admin' ? '<span class="badge b-danger">관리자</span>' : (a.sites.length>1 ? '<span class="badge b-info">통합</span>' : '<span class="badge b-ok">개별</span>');
+    const sites = a.sites==='all' ? '전체' : a.sites.map(i=>S[i].name).join(', ');
+    const chn = a.role==='admin' ? '-' : ['웹', a.chn.sms?'SMS':null, a.chn.kakao?'카톡':null, a.chn.call?'전화':null].filter(Boolean).join('·');
+    const mgmt = a.id==='admin'
+      ? `<button class="btn btn-ghost" style="padding:3px 8px" onclick="editAcct('admin')">수정</button>`
+      : `<button class="btn btn-ghost" style="padding:3px 8px" onclick="editAcct('${a.id}')">수정</button> <button class="btn btn-ghost" style="padding:3px 8px;color:var(--red)" onclick="delAcct('${a.id}')">삭제</button>`;
+    tb.innerHTML += `<tr><td><b>${a.id}</b></td><td title="보안: SHA-256 해시로 저장되어 표시되지 않습니다">••••</td><td>${a.name}</td><td>${a.phone}</td><td>${a.phone2||'-'}</td><td>${a.safe||'-'}</td><td>${type}</td><td>${sites}</td><td>${chn}</td><td style="white-space:nowrap">${mgmt}</td></tr>`;
+  });
+  // 통합 계정 별도 관리창
+  const it=document.querySelector('#intTable tbody'); it.innerHTML='';
+  ACC.filter(a=>a.role==='user' && a.sites!=='all' && a.sites.length>1).forEach(a=>{
+    const capSum = a.sites.reduce((x,i)=>x+S[i].cap,0);
+    it.innerHTML += `<tr><td><b>${a.id}</b></td><td>${a.name}</td><td>${a.phone}</td><td>${a.sites.length}개소</td><td>${capSum.toLocaleString()} kW</td><td>${a.sites.map(i=>S[i].name).join(', ')}</td>
+      <td style="white-space:nowrap"><button class="btn btn-ghost" style="padding:3px 8px" onclick="editAcct('${a.id}')">수정</button> <button class="btn btn-ghost" style="padding:3px 8px;color:var(--red)" onclick="delAcct('${a.id}')">삭제</button></td></tr>`;
+  });
+  if(!it.innerHTML) it.innerHTML='<tr><td colspan="7" class="small">통합 계정이 없습니다.</td></tr>';
+}
+function editAcct(id){
+  const a=ACC.find(x=>x.id===id); if(!a) return;
+  editingId=id;
+  document.getElementById('acTitle').textContent='계정 정보 수정 — '+id;
+  document.getElementById('acId').value=a.id; document.getElementById('acId').disabled=true;
+  document.getElementById('acPw').value=''; document.getElementById('acPw').placeholder='변경 시에만 입력';
+  document.getElementById('acName').value=a.name;
+  document.getElementById('acPhone').value=a.phone==='-'?'':a.phone;
+  document.getElementById('acPhone2').value=(a.phone2&&a.phone2!=='-')?a.phone2:'';
+  document.getElementById('acSafe').value=(a.safe&&a.safe!=='-')?a.safe:'';
+  document.querySelectorAll('.acSite').forEach(c=>{ c.checked = a.sites!=='all' && a.sites.includes(+c.value); });
+  document.getElementById('acSms').checked=!!a.chn.sms;
+  document.getElementById('acKakao').checked=!!a.chn.kakao;
+  document.getElementById('acCall').checked=!!a.chn.call;
+  document.getElementById('btnAcSave').textContent='수정 저장';
+  document.getElementById('btnAcCancel').classList.remove('hidden');
+}
+function cancelEdit(){
+  editingId=null;
+  document.getElementById('acTitle').textContent='신규 발전주 계정 등록';
+  document.getElementById('acId').disabled=false;
+  ['acId','acPw','acName','acPhone','acPhone2','acSafe'].forEach(x=>document.getElementById(x).value='');
+  document.getElementById('acPw').placeholder='비밀번호';
+  document.querySelectorAll('.acSite').forEach(c=>c.checked=false);
+  ['acSms','acKakao','acCall'].forEach(x=>document.getElementById(x).checked=true);
+  document.getElementById('btnAcSave').textContent='계정 등록';
+  document.getElementById('btnAcCancel').classList.add('hidden');
+}
+async function addAcct(){
+  const id=document.getElementById('acId').value.trim(), pw=document.getElementById('acPw').value.trim();
+  const name=document.getElementById('acName').value.trim(), phone=document.getElementById('acPhone').value.trim();
+  const phone2=document.getElementById('acPhone2').value.trim(), safe=document.getElementById('acSafe').value.trim();
+  const sites=[...document.querySelectorAll('.acSite:checked')].map(c=>+c.value);
+  const chn={sms:document.getElementById('acSms').checked, kakao:document.getElementById('acKakao').checked, call:document.getElementById('acCall').checked};
+  const isAdminEdit = editingId==='admin';
+  if(!id||!name){ alert('아이디·이름을 입력하세요.'); return; }
+  if(!editingId && !pw){ alert('비밀번호를 입력하세요.'); return; }
+  if(pw && pw.length<4){ alert('보안: 비밀번호는 4자 이상으로 입력하세요.'); return; }
+  if(!isAdminEdit && sites.length===0){ alert('소유 발전소를 1개 이상 선택하세요.'); return; }
+  if(editingId){
+    if(!confirm(`[${editingId}] 계정 정보를 저장하시겠습니까?\n변경 내용(비밀번호·연락처·발전소·채널)을 다시 확인해 주세요.`)) return;
+    const a=ACC.find(x=>x.id===editingId);
+    if(pw){ a.pwh=await pwHash(pw); delete a.pw; secLog('비밀번호 변경: '+editingId); }
+    a.name=name; a.phone=phone||'-'; a.phone2=phone2||'-'; a.safe=safe||'-'; a.chn=chn;
+    if(!isAdminEdit) a.sites=sites;   // 관리자 계정은 전체(all) 권한 유지
+    saveAcc(); renderAcct(); toast(`계정 수정 완료: ${editingId}`,'var(--green)'); cancelEdit();
+    if(CUR && CUR.id===editingId) applyRole();
+    return;
+  }
+  if(ACC.some(a=>a.id===id)){ alert('이미 존재하는 아이디입니다.'); return; }
+  ACC.push({id, pwh:await pwHash(pw), name, phone: phone||'-', phone2: phone2||'-', safe: safe||'-', sites, role:'user', chn});
+  secLog('신규 계정 등록: '+id);
+  saveAcc(); renderAcct();
+  notis.unshift({time:new Date().toLocaleTimeString('ko-KR'), site:sites.map(i=>S[i].name).join(', '), siteId:sites[0],
+    phone:`발전주 ${name} ${phone||'-'}${phone2?' / 서브 '+phone2:''} / 안전관리자 ${safe||'미등록'}`, ch:'SMS·카카오톡', msg:`신규 발전소 계정 발급 안내 (${id})`, st:'발송완료'});
+  toast(`계정 등록 완료: ${id} — ${sites.length>1?'통합 계정('+sites.length+'개소)':'개별 계정'} · 발전주/안전관리자 통보`,'var(--green)');
+  cancelEdit(); render();
+}
+function delAcct(id){ if(!confirm(id+' 계정을 삭제합니까?')) return; ACC=ACC.filter(a=>a.id!==id); saveAcc(); renderAcct(); }
+
+// ===== 신규 발전소 등록 (+ 발전주 계정 동시 발급) =====
+function regionFromAddr(addr){
+  if(/서울|경기|인천|의정부/.test(addr)) return '수도권';
+  if(/대전|세종|충남|충북|당진|천안|청주/.test(addr)) return '충청권';
+  if(/광주|전남|전북|전주|목포/.test(addr)) return '호남권';
+  if(/부산|대구|울산|경남|경북|창원|포항|봉화/.test(addr)) return '영남권';
+  if(/강원|춘천|원주|강릉/.test(addr)) return '강원권';
+  if(/제주/.test(addr)) return '제주권';
+  return '기타';
+}
+async function addPlant(){
+  const name=document.getElementById('npName').value.trim();
+  const cap=parseFloat(document.getElementById('npCap').value);
+  const t=document.getElementById('npType').value;
+  const invN=Math.max(1, Math.min(20, parseInt(document.getElementById('npInv').value)||3));
+  const cod=document.getElementById('npCod').value.trim();
+  const addr=document.getElementById('npAddr').value.trim();
+  const lat=parseFloat(document.getElementById('npLat').value);
+  const lng=parseFloat(document.getElementById('npLng').value);
+  const comm=document.getElementById('npComm').value;
+  if(!name||!cap){ alert('발전소명과 설비용량을 입력하세요.'); return; }
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(cod)){ alert('준공일을 YYYY-MM-DD 형식으로 입력하세요.'); return; }
+  const la=isNaN(lat)?36.5:lat, ln=isNaN(lng)?127.8:lng;
+  const ns={ id:S.length, name, cap, boxes:Math.max(2,Math.round(cap/40)), base:0.70, deg:false, t,
+    mx:234+111.55*(ln-126.978), my:205-138.25*(la-37.5665), lat:la, lng:ln, cod,
+    invN, comm, region:regionFromAddr(addr||name), addr };
+  initSiteSim(ns); S.push(ns); savePlants();   // 영속 저장 — 재로그인해도 유지
+  // 사이트 체크박스 목록 재구성
+  const box=document.getElementById('acSites'); if(box){ box.dataset.built=''; box.innerHTML=''; }
+  rebuildSelectors();
+  // 발전주 계정 동시 등록 (선택)
+  const aid=document.getElementById('npAcId').value.trim(), apw=document.getElementById('npAcPw').value.trim();
+  const aname=document.getElementById('npAcName').value.trim();
+  let acctMsg='';
+  if(aid && apw && aname){
+    if(ACC.some(a=>a.id===aid)){ alert('이미 존재하는 아이디입니다. 발전소만 등록됩니다.'); }
+    else{
+      const ph=document.getElementById('npAcPhone').value.trim()||'-';
+      const ph2=document.getElementById('npAcPhone2').value.trim()||'-';
+      const sf=document.getElementById('npAcSafe').value.trim()||'-';
+      ACC.push({id:aid, pwh:await pwHash(apw), name:aname, phone:ph, phone2:ph2, safe:sf, sites:[ns.id], role:'user', chn:{sms:true,kakao:true,call:true}});
+      secLog('신규 발전소 계정 등록: '+aid+' ('+name+')');
+      saveAcc();
+      notis.unshift({time:new Date().toLocaleTimeString('ko-KR'), site:name, siteId:ns.id,
+        phone:`발전주 ${aname} ${ph} / 서브 ${ph2} / 안전관리자 ${sf}`, ch:'SMS·카카오톡', msg:`신규 발전소(${name}) 계정 발급 안내 (${aid})`, st:'발송완료'});
+      acctMsg=' · 발전주 계정 '+aid+' 발급';
+    }
+  }
+  ['npName','npCap','npCod','npAddr','npLat','npLng','npAcId','npAcPw','npAcName','npAcPhone','npAcPhone2','npAcSafe'].forEach(x=>{const el=document.getElementById(x); if(el) el.value='';});
+  renderAcct(); render();
+  if(typeof glAddMarker==='function') glAddMarker(ns);
+  toast(`발전소 등록 완료: ${name} (${cap}kW · 인버터 ${invN}대 · 채널 ${ns.invCh.join('·')} — 신호 자동감지)${acctMsg}`,'var(--green)');
+}
+
+// ================= 수익 =================
+let SMP = 114.96, RECP = 71945, RECW = 1.5;
+try{ const pv=JSON.parse(localStorage.getItem('sg_price')||'null'); if(pv){ SMP=pv.SMP||SMP; RECP=pv.RECP||RECP; RECW=pv.RECW||RECW; } }catch(e){}
+function revenue(kwh){ return kwh*SMP + (kwh/1000)*RECW*RECP; }
+function won(v){ return '₩' + Math.round(v).toLocaleString('ko-KR'); }
+
+// ===== VPP 내일 발전량 예측 (기상청 단기예보 기반 — 데모는 내장 예보 시뮬레이션) =====
+function fcTomorrow(s){
+  const d=new Date(NOW); d.setDate(d.getDate()+1);
+  const key=d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate()+s.id*977;
+  const r=rand01(key);
+  const sky = r>0.62?1:(r>0.28?3:4);                 // 1맑음 / 3구름많음 / 4흐림 (기상청 SKY 코드)
+  const skyF = sky===1?1.0:sky===3?0.78:0.48;        // 하늘상태별 발전 보정계수
+  const e = s.cap*3.9*s.base/0.72*seasFactor(d.getMonth())*skyF*(0.95+rand01(key+7)*0.1);
+  const tmax = Math.round(18+seasFactor(d.getMonth())*14+rand01(key+3)*4);
+  return {date:d, sky, e, h:e/s.cap, rev:revenue(e), p90:e*0.9, tmax};
+}
+function fcFleet(list){
+  let e=0,p90=0; list.forEach(s=>{ const f=fcTomorrow(s); e+=f.e; p90+=f.p90; });
+  return {e, p90, rev:revenue(e)};
+}
+
+function sitePower(s){ return s.tripped?0:s.strings.reduce((a,b,i)=>a+((b.iso||s.invTrip[invOf(s,i)])?0:b.v*b.a),0)/1000*s.kf; }
+function pushRisk(s){ s.riskHist.push(s.risk); if(s.riskHist.length>60) s.riskHist.shift(); }
+function addAlarm(s,grade,msg,cls,loc){ alarms.unshift({time:new Date().toLocaleTimeString('ko-KR'),site:s.name,grade,msg,risk:s.risk.toFixed(0),ack:false,cls,siteId:s.id, inv:loc?loc.inv:null, ch:loc?loc.ch:null}); }
+// 경보가 발생한 스트링 위치(인버터·채널) 산출
+function badLoc(s){ const bi=s.strings.findIndex(x=>x.bad&&!x.iso); return bi>=0?{inv:invOf(s,bi),ch:chIdx(s,bi)}:null; }
+// 경고 이력 클릭 → 사이트 상세의 해당 인버터·스트링 채널 강조 표시로 이동
+function goSiteCh(sid,inv,ch){
+  curSite=sid; siteSel.value=sid;
+  if(inv!=null){ curInv=inv; window._hlCh={site:sid,inv,ch,until:Date.now()+8000}; }
+  hideTip(); gotoView('site'); render(); renderAS();
+  const tbl=document.getElementById('strTable');
+  if(tbl && tbl.scrollIntoView) setTimeout(()=>tbl.scrollIntoView({behavior:'smooth',block:'center'}),100);
+}
+// 경보 이력에서 해당 채널 즉시 격리/재투입 (격리 시 해당 경보는 '확인' 처리)
+function alarmIsoCh(sid,inv,ch){
+  const s=S[sid]; if(!s || inv>=s.invN || ch>=s.invCh[inv]) return;
+  isoStr(sid, s.invOff[inv]+ch);
+  alarms.forEach(a=>{ if(a.siteId===sid && a.inv===inv && a.ch===ch && !a.ack) a.ack=true; });
+  render();
+}
+function alarmReCh(sid,inv,ch){
+  const s=S[sid]; if(!s || inv>=s.invN || ch>=s.invCh[inv]) return;
+  reStr(sid, s.invOff[inv]+ch);
+}
+function toast(m,color){ const el=document.getElementById('toast'); el.textContent=m; el.style.background=color||'var(--red)'; el.style.display='block'; setTimeout(()=>el.style.display='none',6000); }
+
+// ================= 호버 툴팁 =================
+const tip=document.getElementById('hoverTip');
+function showTip(html,x,y){ tip.innerHTML=html; tip.style.display='block';
+  const w=tip.offsetWidth, vw=window.innerWidth;
+  tip.style.left=Math.min(x+16, vw-w-8)+'px'; tip.style.top=Math.max(8,y-10)+'px'; }
+function hideTip(){ tip.style.display='none'; }
+function siteTipHtml(s){
+  const p=sitePower(s), pct=Math.min(100,p/s.cap*100);
+  return `<b>${s.name}</b><br>설비용량: <b>${s.cap} kW</b><br>현재 발전량: <b style="color:#4ade80">${p.toFixed(1)} kW</b> (발전률 ${pct.toFixed(1)}%)<br>금일 발전량: ${(s.energyToday/1000).toFixed(2)} MWh<br>AI 위험도: <b style="color:${riskColor(s.risk)}">${s.risk.toFixed(0)}점</b> · ${s.tripped?'차단중':'발전중'}`;
+}
+// 지도 점·사이트 카드 호버 (위임)
+function bindHover(containerId, selector, getSid){
+  const el=document.getElementById(containerId);
+  el.addEventListener('mousemove', e=>{
+    const g=e.target.closest(selector);
+    if(g){ const sid=+g.dataset.sid; showTip(siteTipHtml(S[sid]), e.clientX, e.clientY); } else hideTip();
+  });
+  el.addEventListener('mouseleave', hideTip);
+}
+
+// ================= 알림·TTS =================
+function speak(txt){
+  try{
+    if(!document.getElementById('ckVoice').checked) return;
+    speechSynthesis.cancel();
+    const m = new SpeechSynthesisUtterance(txt);
+    m.lang='ko-KR'; m.rate=1.02; speechSynthesis.speak(m);
+  }catch(e){}
+}
+function ownerOf(s){ return ACC.find(x=>x.role==='user' && x.sites!=='all' && x.sites.includes(s.id)); }
+function sendNoti(s, msg, opts={}){
+  const own = ownerOf(s);
+  const owner = own ? `${own.name} ${own.phone}${own.phone2&&own.phone2!=='-'?' / '+own.phone2:''}` : (document.getElementById('inPhone').value||'미등록');
+  const oper = document.getElementById('inOp').value || '미등록';
+  const safe = (own && own.safe && own.safe!=='-') ? own.safe : (document.getElementById('inSafe').value || '미등록');
+  const phone = '발전주 ' + owner + ' / 운영자 ' + oper + ' / 안전관리자 ' + safe;
+  const chn = own ? own.chn : {sms:document.getElementById('ckSms').checked, kakao:document.getElementById('ckKakao').checked, call:document.getElementById('ckCall').checked, push:document.getElementById('ckPush')&&document.getElementById('ckPush').checked};
+  const ch = ['웹 경보'];
+  if(chn.sms) ch.push('SMS');
+  if(chn.kakao) ch.push('카카오톡');
+  if(chn.call) ch.push('전화(ARS)');
+  if(chn.push) ch.push('웹통보(푸시)');
+  notis.unshift({time:new Date().toLocaleTimeString('ko-KR'), site:s.name, siteId:s.id, phone, ch:ch.join('·'), msg, st:'발송완료'});
+  if(notis.length>80) notis.pop();
+  if(mySites().includes(s.id)){
+    toast(`📣 [${s.name}] ${msg}`, opts.color);
+    if(chn.push) webPush(s.name, msg);   // 웹 통보(문자형 푸시) — 브라우저 알림
+  }
+  if(opts.voice && mySites().includes(s.id)) speak(opts.voice);
+}
+function badList(s){
+  const b=[]; s.strings.forEach((st,i)=>{ if(st.bad && !st.iso && !s.invTrip[invOf(s,i)]) b.push(chName(s,i)); });
+  return b;
+}
+
+function tick(){
+  t++;
+  const thr = Math.min(99, Math.max(50, parseFloat(document.getElementById('inAuto').value)||85));
+  const restoreAt = Math.min(thr-1, Math.max(10, parseFloat(document.getElementById('inRestoreAt').value)||75));
+  const autoRestore = document.getElementById('ckRestore').checked;
+  const _hh=new Date().getHours()+new Date().getMinutes()/60;
+  const _sun=Math.max(0, Math.sin((_hh-5.5)/13*Math.PI));
+  S.forEach(s=>{
+    // 현장 기상센서(일사량계·모듈온도) 시뮬 — 정식판: 기상청 API + 현장센서 연동
+    s.wx.ambT=+(14+_sun*13+Math.random()*2).toFixed(1);
+    s.wx.irr=Math.round(_sun*(760+Math.random()*240)*(s.commErr?0:1));
+    s.wx.modT=+(s.wx.ambT + _sun*19 + Math.random()*3).toFixed(1);
+    s.wx.wind=+(0.5+Math.random()*4.5).toFixed(1);
+    s.wx.reh=Math.round(42+Math.random()*38);
+    s.wx.sky=_sun>0.55?1:(_sun>0.15?3:(Math.random()<0.3?4:1));
+    if(Math.random()<0.0018) s.netErr=!s.netErr;
+    if(Math.random()<0.0018) s.commErr=!s.commErr;
+    // 신규 스트링 신호 자동 감지 → 채널 자동 생성 (접속반/인버터에서 새 신호 수신 시)
+    if(Math.random()<0.0006){
+      const k = Math.floor(Math.random()*s.invN);
+      if(s.invCh[k] < MAX_CH){
+        const insertAt = s.invOff[k] + s.invCh[k];
+        s.strings.splice(insertAt, 0, newStrCh());
+        s.invCh[k]++; recalcOff(s);
+        s.kf = s.cap*0.72/(s.strings.length*620*9.5*s.base*1.3/1000);
+        addAlarm(s,"조치",`INV${k+1} 신규 스트링 신호 감지 — ST-${String(s.invCh[k]).padStart(2,'0')} 채널 자동 생성 (${s.invCh[k]}ch)`,"warn");
+      }
+    }
+    const producing = !s.tripped && sitePower(s)>1;
+    s.ac.v = 377 + Math.random()*8;
+    s.ac.hz = 59.95 + Math.random()*0.1;
+    s.ac.pf = producing ? 0.97+Math.random()*0.025 : 0;
+    if(s.tripped){
+      s.strings.forEach(st=>{ st.a=0; st.ins=Math.min(80, st.ins+0.6); st.t=Math.max(30, st.t-0.8); });
+      s.arc = Math.max(0, s.arc-1);
+      s.risk = Math.max(4, s.risk*0.93);
+      pushRisk(s);
+      const insMin = Math.min(...s.strings.map(x=>x.ins));
+      if(autoRestore && s.autoTripped && insMin>25 && s.risk<=restoreAt){
+        s.tripped=false; s.autoTripped=false; s.deg=false; s.warned=false; s.danger=false;
+        s.strings.forEach(st=>{ st.bad=false; });
+        addAlarm(s,"복구",`자동 복구(재투입) 완료 — 위험도 ${s.risk.toFixed(0)}점(기준 ${restoreAt}점 이하) 회복`,"warn");
+        sendNoti(s, "자동 복구 완료: 위험 요인 해소 확인 후 재투입, 발전이 재개되었습니다.", {color:'var(--green)',
+          voice:`다사론 솔라가드 안내입니다. ${s.name} 설비가 자동 복구되었습니다.`});
+      }
+      return;
+    }
+    const sun = 0.85+0.15*Math.sin(t/40 + s.id);
+    s.strings.forEach((st,i)=>{
+      if(st.iso || s.invTrip[invOf(s,i)]){ st.a=0; st.ins=Math.min(80, st.ins+0.4); if(st.iso) st.bad=false; return; }
+      st.v = 615+Math.random()*35;
+      st.a = (8.5+Math.random()*1.5)*sun*s.base*1.3;
+      st.t = 33 + Math.random()*5 + (s.deg? t*0.05:0);
+      st.ins = Math.max(2, st.ins - (s.deg && i<3 ? 0.15:0.005) + (Math.random()-0.5)*0.3);
+      st.bad = s.deg && i<3 && t>40;
+    });
+    const act = s.strings.filter(x=>!x.iso);
+    s.temp = act.reduce((x,y)=>x+y.t,0)/Math.max(1,act.length);
+    const degActive = s.deg && s.strings.slice(0,3).some(x=>!x.iso);
+    if(degActive && t>30 && Math.random()<0.25) s.arc++;
+    if(!degActive) s.arc = Math.max(0, s.arc-0.2);
+    const dE = sitePower(s)/1800;
+    s.energyToday += dE; s.cum += dE;
+    const insMin = Math.min(...act.map(x=>x.ins));
+    let r = 8 + (s.temp-36)*2.2 + s.arc*3.5 + Math.max(0,(20-insMin))*2.8;
+    r = Math.max(3, Math.min(98, r + (Math.random()-0.5)*2 ));
+    s.risk = s.risk*0.8 + r*0.2;
+    pushRisk(s);
+    if(s.risk>45 && !s.warned){
+      s.warned=true;
+      const loc1=badLoc(s);
+      addAlarm(s,"주의","AI 예지: 절연 열화 추세 감지 — 점검 권고"+(loc1?` (INV${loc1.inv+1}-ST${String(loc1.ch+1).padStart(2,'0')})`:''),"warn",loc1);
+      sendNoti(s, "주의 경보: 절연 열화 추세 감지. 점검을 권고합니다.", {color:'var(--amber)'});
+    }
+    if(s.risk>70 && !s.danger){
+      s.danger=true;
+      const bl = badList(s).join(', ') || '식별 중';
+      addAlarm(s,"위험",`AI 예지: 아크 패턴·과열 복합 위험 — 차단 검토 요망 (${bl})`,"danger",badLoc(s));
+      sendNoti(s, `위험 경보: 화재 위험 예측 (위험도 ${s.risk.toFixed(0)}점). 원인 ${bl}.`, {
+        voice:`다사론 솔라가드 자동 경보입니다. ${s.name}에서 화재 위험이 감지되었습니다. 위험도 ${s.risk.toFixed(0)}점. 원인은 ${bl}입니다. ${thr}점 도달 시 자동 차단됩니다.`});
+    }
+    if(s.risk>=thr && !s.tripped){
+      s.tripped=true; s.autoTripped=true; prevented++;
+      addAlarm(s,"자동차단",`위험도 ${s.risk.toFixed(0)}점 ≥ ${thr}점 — 자동 차단`,"danger");
+      sendNoti(s, `자동 차단 실행: 위험도 ${s.risk.toFixed(0)}점 임계 도달. ${restoreAt}점 이하 회복 시 자동 복구.`, {
+        voice:`긴급 안내입니다. ${s.name} 설비를 자동 차단했습니다. 위험 해소 시 자동 복구됩니다.`});
+    }
+  });
+  // ESS 스케줄 자동운전: 충전 10:00~15:00 · 방전 15:00~익일 10:00
+  const _h = new Date().getHours();
+  const chargeWin = (_h>=10 && _h<15);
+  ESS.forEach(e=>{
+    if(e.auto){
+      if(chargeWin) e.mode = e.soc>=100 ? '대기' : '충전';
+      else e.mode = e.soc<=5 ? '대기' : '방전';
+    }
+    if(e.mode==='충전'){ e.p=Math.round(e.cap*0.24); e.soc=Math.min(100, e.soc+0.12); }
+    else if(e.mode==='방전'){ e.p=-Math.round(e.cap*0.3); e.soc=Math.max(5, e.soc-0.15);
+      const dkwh = Math.abs(e.p)*2/3600;   // 2초 tick → 방전량(kWh)
+      e.dischToday += dkwh; e.dischMonth += dkwh; e.cycles += dkwh/e.cap/2;
+    }
+    else e.p=0;
+    e.temp = 26 + Math.abs(e.p)/e.cap*10 + Math.random();
+    e.cellT = e.temp + 1.2 + Math.random()*0.6;
+    if(e.soc>=100 && e.mode==='충전'){ e.mode='대기'; }
+  });
+  EV.forEach(v=>{ if(v.st==='충전중'){
+    const dkwh = v.kw/1800;
+    v.ses += dkwh; v.cumChg += dkwh;
+    v.payToday += dkwh * (v.member ? EV_PRICE.member : EV_PRICE.guest);
+    if(v.ses>60){ v.st='완료'; v.kw=0; v.chgCnt++; }
+  } });
+  // RTU 저장메모리(스토어&포워드): 30초마다 누적 데이터 로컬 저장 → 통신 두절·재접속 시 이어서 복원
+  if(t===3 || t%15===0) saveRTU();
+  render();
+}
+window.addEventListener('beforeunload', ()=>{ try{ saveRTU(); }catch(e){} });
+// ===== RTU 저장메모리 (72h 스토어&포워드) =====
+// 인터넷이 끊겨도 RTU가 로컬 메모리에 누적 기록하고, 재연결 시 끊긴 시점부터 이어서 반영
+function saveRTU(){
+  try{
+    localStorage.setItem('sg_rtu', JSON.stringify({
+      ts: Date.now(),
+      s: S.map(x=>({id:x.id, e:+x.energyToday.toFixed(1), cum:Math.round(x.cum)})),
+      ess: ESS.map(e=>({id:e.id, soc:+e.soc.toFixed(1), dt:+e.dischToday.toFixed(1), dm:+e.dischMonth.toFixed(1)}))
+    }));
+  }catch(e){}
+}
+function restoreRTU(){
+  try{
+    const r=JSON.parse(localStorage.getItem('sg_rtu')||'null'); if(!r||!r.ts) return;
+    const gapMin=(Date.now()-r.ts)/60000;
+    (r.s||[]).forEach(o=>{ const s=S[o.id]; if(!s) return; if(o.e>s.energyToday) s.energyToday=o.e; if(o.cum>s.cum) s.cum=o.cum; });
+    (r.ess||[]).forEach(o=>{ const e=ESS.find(x=>x.id===o.id); if(!e) return; e.soc=o.soc; e.dischToday=o.dt; e.dischMonth=o.dm; });
+    if(gapMin>1){
+      // 결측(통신 공백) 구간 백필 — 주간 시간대만 발전량 추정 가산 (최대 12시간)
+      const hh=new Date().getHours();
+      if(hh>=7 && hh<=18){
+        S.forEach(s=>{ const add=s.cap*0.5*Math.min(gapMin,720)/60; s.energyToday+=add; s.cum+=add; });
+      }
+      setTimeout(()=>{
+        toast('RTU 저장메모리 동기화: 통신 공백 '+Math.round(gapMin)+'분 구간의 누적 데이터를 회수했습니다.','var(--blue)');
+        try{ secLog('RTU 버퍼 동기화 — 공백 '+Math.round(gapMin)+'분 데이터 회수'); }catch(e){}
+      }, 1500);
+    }
+  }catch(e){}
+}
+setTimeout(restoreRTU, 300);
+window.addEventListener('offline', ()=>{ toast('⚠ 인터넷 연결 끊김 — RTU 저장메모리 로컬 기록 모드 (재연결 시 자동 동기화)','var(--amber)'); try{ secLog('통신 끊김 — RTU 스토어&포워드 모드 진입'); }catch(e){} });
+window.addEventListener('online', ()=>{ saveRTU(); toast('인터넷 재연결 — RTU 버퍼 누적 데이터 동기화 완료','var(--green)'); try{ secLog('통신 재연결 — RTU 버퍼 동기화 완료'); }catch(e){} });
+
+// ================= 화면 전환 =================
+document.querySelectorAll('nav button[data-v]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  document.querySelectorAll('main section').forEach(x=>x.classList.add('hidden'));
+  document.getElementById('v-'+b.dataset.v).classList.remove('hidden');
+  if(b.dataset.v==='pv') setTimeout(()=>updatePv(true),0);
+  if(b.dataset.v==='acct'){ renderAcct(); syncAcctPrice(); renderCustomer(); }
+  if(b.dataset.v==='site') renderAS();
+  if(b.dataset.v==='admin'){ renderSecLog(); const isel=document.getElementById('idleSel'); if(isel) isel.value=String(idleMin); }
+  if(b.dataset.v==='overview') setTimeout(()=>{ if(typeof kakaoRelayout==='function') kakaoRelayout(); if(glMapObj){ try{ glMapObj.resize(); }catch(e){} } }, 60);
+});
+function riskColor(r){ return r>70?'var(--red)':r>45?'var(--amber)':'var(--green)'; }
+function riskBadge(r){ return r>70?['위험','b-danger']:r>45?['주의','b-warn']:['정상','b-ok']; }
+function goReport(sid){
+  document.getElementById('repSel').value = String(sid);
+  gotoView('report'); render();
+}
+
+// ================= 사이트 상세 =================
+const siteSel=document.getElementById('siteSel');
+let curInv=0;   // 사이트 상세에서 선택된 인버터 번호(0-base)
+siteSel.onchange=()=>{curSite=+siteSel.value; curInv=0; renderAS();};
+document.getElementById('btnTrip').onclick=()=>{
+  const s=S[curSite];
+  const what = s.t==='inv' ? '인버터 정지(게이트 차단)' : '접속반 차단기 전체 차단';
+  if(!confirm(`[${s.name}] ${what} 명령을 전송합니까?`)) return;
+  // 보안: 위험 조치 2단계 확인 (오조작 방지)
+  const v=prompt(`보안 확인 (2단계): 발전소 전체가 정지되는 위험 조치입니다.\n계속하려면 "차단" 을 입력하세요.`);
+  if(v!=='차단'){ toast('입력 불일치 — 차단 명령이 취소되었습니다.','var(--blue)'); secLog('전체 차단 2단계 확인 실패 — 취소: '+s.name); return; }
+  s.tripped=true; s.autoTripped=true; addAlarm(s,"조치",`원격 ${what} 실행 — 발전 정지`,"warn"); prevented++;
+  secLog('원격 전체 차단 실행: '+s.name+' (조작자 '+(CUR?CUR.id:'-')+')');
+  sendNoti(s,`원격 ${what} 실행: 발전이 정지되었습니다.`,{color:'var(--green)'});
+};
+function selInv(k){ curInv=k; render(); }
+document.getElementById('btnInvStop').onclick=()=>{
+  const s=S[curSite];
+  if(s.invTrip[curInv]) return;
+  if(confirm(`[${s.name}] 인버터 ${curInv+1} (INV${curInv+1}) 정지 명령을 전송합니까?\n해당 인버터의 스트링 ${s.invCh[curInv]}개 채널이 모두 정지됩니다.`)){
+    s.invTrip[curInv]=true; prevented++;
+    addAlarm(s,"조치",`INV${curInv+1} 원격 정지 — 스트링 ${s.invCh[curInv]}채널 발전 정지`,"warn");
+    secLog('인버터 원격 정지: '+s.name+' INV'+(curInv+1)+' (조작자 '+(CUR?CUR.id:'-')+')');
+    sendNoti(s,`인버터 INV${curInv+1} 원격 정지 완료.`,{color:'var(--green)'});
+  }};
+document.getElementById('btnInvStart').onclick=()=>{
+  const s=S[curSite];
+  if(!s.invTrip[curInv]) return;
+  if(confirm(`[${s.name}] 인버터 ${curInv+1} (INV${curInv+1}) 재기동 명령을 전송합니까?`)){
+    s.invTrip[curInv]=false;
+    addAlarm(s,"조치",`INV${curInv+1} 원격 재기동 — 발전 재개`,"warn");
+    sendNoti(s,`인버터 INV${curInv+1} 재기동 완료.`,{color:'var(--green)'});
+  }};
+function isoStr(siteId, idx){
+  const s=S[siteId], st=s.strings[idx];
+  const nm=chName(s,idx);
+  st.iso=true; st.bad=false; prevented++;
+  addAlarm(s,"조치",`${nm} 스트링 채널 원격 격리(개별 차단)`,"warn",{inv:invOf(s,idx),ch:chIdx(s,idx)});
+  sendNoti(s, `${nm} 스트링 채널 원격 격리 조치 완료.`, {color:'var(--green)', voice:`인버터 ${invOf(s,idx)+1}번 ${chIdx(s,idx)+1}번 스트링 격리 완료.`});
+  render();
+}
+function reStr(siteId, idx){
+  const s=S[siteId]; s.strings[idx].iso=false;
+  addAlarm(s,"조치",`${chName(s,idx)} 스트링 채널 재투입`,"warn"); render();
+}
+
+// ================= ESS·EV =================
+function essSet(i, mode){
+  ESS[i].mode=mode; ESS[i].auto=false;   // 수동 전환 시 스케줄 자동운전 해제
+  toast(`[${ESS[i].id}] 수동 모드 전환: ${mode}`,'var(--blue)');
+  addAlarm(S[ESS[i].site],"조치",`${ESS[i].id} ${mode} 모드 전환(수동)`,"warn");
+  render();
+}
+function essAuto(i){
+  ESS[i].auto=!ESS[i].auto;
+  toast(`[${ESS[i].id}] 스케줄 자동운전 ${ESS[i].auto?'ON — 충전 10~15시 · 방전 15시~익일 10시':'OFF (수동)'}`,'var(--blue)');
+  render();
+}
+function saveEvPrice(){
+  EV_PRICE={member:parseFloat(document.getElementById('evPriceM').value)||EV_PRICE.member,
+            guest:parseFloat(document.getElementById('evPriceG').value)||EV_PRICE.guest};
+  try{ localStorage.setItem('sg_evprice', JSON.stringify(EV_PRICE)); }catch(e){}
+  toast(`EV 충전단가 적용: 회원 ${EV_PRICE.member}원 · 비회원 ${EV_PRICE.guest}원/kWh`,'var(--blue)');
+}
+function evToggle(i){
+  const v=EV[i];
+  if(v.st==='충전중'){ v.st='대기'; v.kw=0; toast(`[${v.id}] 충전 중지`,'var(--blue)'); }
+  else if(v.st==='대기'||v.st==='완료'){ v.st='충전중'; v.kw=v.id.includes('C')?100:v.id.includes('B')?50:7; v.ses=0; toast(`[${v.id}] 충전 시작`,'var(--green)'); }
+  render();
+}
+
+// ================= 차트 =================
+Chart.Tooltip.positioners.follow = function(items, pos){ return pos ? {x: pos.x + 18, y: pos.y - 10} : false; };
+function lineOpts(yopt={}){
+  return {animation:false, maintainAspectRatio:true,
+    interaction:{mode:'index', intersect:false},
+    plugins:{
+      legend:{labels:{color:'#93a0b8',boxWidth:10,font:{size:10}}},
+      tooltip:{position:'follow', mode:'index', intersect:false, backgroundColor:'#1a2130',
+        borderColor:'#F98A0B', borderWidth:1, titleColor:'#fff', bodyColor:'#e8ecf4', padding:10,
+        callbacks:{ title:(items)=> items.length? '측정 #'+items[0].label : '' }}
+    },
+    scales:{y:Object.assign({grid:{color:'#e2e8f0'},ticks:{color:'#93a0b8'}},yopt), x:{display:false}}};
+}
+let chC, chV, chP, chT, chR;
+const zoomLen = {cur:96, volt:96, pow:96, tmp:96};
+function attachZoom(canvasId, key){
+  document.getElementById(canvasId).addEventListener('wheel', e=>{
+    e.preventDefault();
+    zoomLen[key] = Math.max(8, Math.min(96, zoomLen[key] + (e.deltaY>0 ? 8 : -8)));
+  }, {passive:false});
+}
+function mkCharts(){
+  chC = new Chart(document.getElementById('chCurrent'),{type:'line',data:{labels:[],datasets:[]},options:lineOpts()});
+  chV = new Chart(document.getElementById('chVolt'),{type:'line',data:{labels:[],datasets:[]},options:lineOpts()});
+  chP = new Chart(document.getElementById('chPow'),{type:'line',data:{labels:[],datasets:[]},options:lineOpts()});
+  chT = new Chart(document.getElementById('chTemp'),{type:'line',data:{labels:[],datasets:[]},options:lineOpts()});
+  chR = new Chart(document.getElementById('chRisk'),{type:'line',data:{labels:[],datasets:[]},options:lineOpts({min:0,max:100})});
+  attachZoom('chCurrent','cur'); attachZoom('chVolt','volt'); attachZoom('chPow','pow'); attachZoom('chTemp','tmp');
+  [chC,chV,chP,chT,chR].forEach(ch=>{ ch.options.scales.x={display:true, grid:{color:'#e2e8f0'}, ticks:{color:'#5a6b82', maxTicksLimit:12, autoSkip:true, maxRotation:0, font:{size:9}}}; });
+}
+const histC={}, histV={}, histP={}, histT={};
+
+// ===== 지도 확대/축소·이동 (viewBox 팬줌) + 온도 마커 =====
+let kakaoMapObj=null, kakaoOverlays={};
+function initKakaoMap(){
+  const c=document.getElementById('kakaoMap'); if(!c||!window.kakao||!kakao.maps) return;
+  const svg=document.getElementById('krMap'); if(svg) svg.style.display='none';
+  c.style.display='block';
+  kakaoMapObj=new kakao.maps.Map(c,{center:new kakao.maps.LatLng(36.3,127.8), level:13});
+  try{ kakaoMapObj.setMapTypeId(kakao.maps.MapTypeId.HYBRID); }catch(e){}   // 항공(위성) 뷰 + 라벨 기본
+  try{ kakaoMapObj.addControl(new kakao.maps.MapTypeControl(), kakao.maps.ControlPosition.TOPRIGHT); }catch(e){}
+  S.forEach(s=>{
+    const el=document.createElement('div'); el.style.cursor='pointer';
+    el.addEventListener('click', ()=>goSite(s.id));
+    const ov=new kakao.maps.CustomOverlay({position:new kakao.maps.LatLng(s.lat,s.lng), content:el, yAnchor:1, xAnchor:0.5, zIndex:3});
+    ov.setMap(kakaoMapObj); kakaoOverlays[s.id]={ov,el};
+  });
+  updateKakaoOverlays();
+  // 컨테이너 크기 확정 후 재배치 — 위성 타일과 라벨 레이어 어긋남 방지
+  setTimeout(kakaoRelayout, 300); setTimeout(kakaoRelayout, 1500);
+}
+// 카카오맵 relayout: 창 크기 변경·화면 전환·로그인 직후 레이어(위성/라벨) 정렬을 다시 맞춤
+function kakaoRelayout(){
+  if(!kakaoMapObj) return;
+  try{ const cen=kakaoMapObj.getCenter(); kakaoMapObj.relayout(); kakaoMapObj.setCenter(cen); }catch(e){}
+}
+window.addEventListener('resize', ()=>{ kakaoRelayout(); if(glMapObj){ try{ glMapObj.resize(); }catch(e){} } });
+function updateKakaoOverlays(){
+  const ms=mySites(), alertIds=window._alertIds||[];
+  Object.keys(kakaoOverlays).forEach(id=>{
+    const s=S[+id], o=kakaoOverlays[id], show=ms.includes(+id);
+    o.ov.setMap(show?kakaoMapObj:null); if(!show) return;
+    const col=alertIds.includes(+id)?'#ef4444':s.risk>45?'#f59e0b':'#22c55e'; const p=sitePower(s);
+    o.el.innerHTML='<div style="display:flex;flex-direction:column;align-items:center">'+
+      '<div style="background:'+col+';color:#fff;border:2px solid #fff;border-radius:12px;padding:2px 8px;font-size:12px;font-weight:800;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.45)">'+s.name.split(' ')[0]+' '+s.wx.ambT.toFixed(1)+'℃ · '+p.toFixed(0)+'kW</div>'+
+      '<div style="width:12px;height:12px;background:'+col+';border:2px solid #fff;border-radius:50%;margin-top:-1px;box-shadow:0 2px 4px rgba(0,0,0,.4)"></div></div>';
+  });
+}
+// ===== 벡터 지도 (MapLibre GL + OpenFreeMap 무료 벡터타일 — 키 불필요) =====
+// 확대: 읍면동·50m 상세(줌 19) ~ 축소: 세계지도 전체(줌 0)
+let glMapObj=null, glMarkers={};
+function glMarkerEl(s){
+  const el=document.createElement('div'); el.className='glMarker'; el.dataset.sid=s.id;
+  el.addEventListener('click', ()=>goSite(s.id));
+  el.addEventListener('mousemove', e=>showTip(siteTipHtml(S[s.id]), e.clientX, e.clientY));
+  el.addEventListener('mouseleave', hideTip);
+  return el;
+}
+function glAddMarker(s){
+  if(!glMapObj || !window.maplibregl) return;
+  const el=glMarkerEl(s);
+  const mk=new maplibregl.Marker({element:el, anchor:'bottom'}).setLngLat([s.lng,s.lat]).addTo(glMapObj);
+  glMarkers[s.id]={mk,el};
+}
+function initGLMap(){
+  if(!window.maplibregl || glMapObj || kakaoMapObj) return;   // 카카오맵이 이미 뜬 경우는 유지
+  const c=document.getElementById('glMap'); if(!c) return;
+  try{
+    glMapObj=new maplibregl.Map({
+      container:'glMap',
+      style:'https://tiles.openfreemap.org/styles/liberty',
+      center:[127.8,36.3], zoom:6,
+      minZoom:0.8,     // 세계지도 전체
+      maxZoom:19,      // 읍면동·최소 50m 축척 상세
+      attributionControl:{compact:true}
+    });
+    glMapObj.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');
+    glMapObj.addControl(new maplibregl.ScaleControl({maxWidth:120,unit:'metric'}),'bottom-left');
+    glMapObj.on('load', ()=>{
+      const svg=document.getElementById('krMap'); if(svg) svg.style.display='none';
+      c.style.display='block';
+      S.forEach(s=>glAddMarker(s));
+      updateGLMarkers();
+    });
+    glMapObj.on('error', ()=>{});   // 타일 오류 시 조용히 유지 (오프라인은 아래 폴백)
+  }catch(e){ glMapObj=null; }
+  // 오프라인/차단 폴백: 5초 내 로드 실패 시 내장 SVG 지도 유지
+  setTimeout(()=>{
+    if(glMapObj && !glMapObj.loaded() && !glMapObj.isStyleLoaded()){
+      try{ glMapObj.remove(); }catch(e){}
+      glMapObj=null; glMarkers={};
+      c.style.display='none';
+      const svg=document.getElementById('krMap'); if(svg) svg.style.display='block';
+    }
+  }, 5000);
+}
+function updateGLMarkers(){
+  if(!glMapObj) return;
+  const ms=mySites(), alertIds=window._alertIds||[];
+  S.forEach(s=>{
+    let o=glMarkers[s.id];
+    if(!o){ glAddMarker(s); o=glMarkers[s.id]; if(!o) return; }
+    const show=ms.includes(s.id);
+    o.el.style.display=show?'':'none';
+    if(!show) return;
+    const col=alertIds.includes(s.id)?'#ef4444':s.risk>45?'#f59e0b':'#22c55e';
+    const p=sitePower(s);
+    o.el.innerHTML=`<div class="lbl" style="border-color:${col}">${s.name.split(' ')[0]} ${s.wx.ambT.toFixed(1)}℃ · ${p.toFixed(0)}kW</div><div class="dot" style="background:${col}"></div>`;
+  });
+}
+let vb={x:0,y:0,w:650,h:879};
+function applyVB(){ const s=document.getElementById('krMap'); if(s) s.setAttribute('viewBox', vb.x.toFixed(1)+' '+vb.y.toFixed(1)+' '+vb.w.toFixed(1)+' '+vb.h.toFixed(1)); drawMapDots(); }
+function clampVB(){ vb.w=Math.max(150,Math.min(650,vb.w)); vb.h=vb.w*879/650;
+  vb.x=Math.max(-80,Math.min(650-vb.w+80, vb.x)); vb.y=Math.max(-80,Math.min(879-vb.h+80, vb.y)); }
+function mapZoom(f, cx, cy){
+  if(glMapObj){ f<1 ? glMapObj.zoomIn() : glMapObj.zoomOut(); return; }
+  if(kakaoMapObj){ const lv=kakaoMapObj.getLevel(); kakaoMapObj.setLevel(Math.max(3,Math.min(14, lv+(f<1?-1:1)))); return; } if(cx==null){cx=0.5;cy=0.5;} const nw=vb.w*f, nh=nw*879/650;
+  vb.x += (vb.w-nw)*cx; vb.y += (vb.h-nh)*cy; vb.w=nw; vb.h=nh; clampVB(); applyVB(); }
+function mapReset(){
+  if(glMapObj){ glMapObj.flyTo({center:[127.8,36.3], zoom:6}); return; }
+  if(kakaoMapObj){ kakaoMapObj.setLevel(13); kakaoMapObj.setCenter(new kakao.maps.LatLng(36.3,127.8)); return; } vb={x:0,y:0,w:650,h:879}; applyVB(); }
+function drawMapDots(){
+  const md=document.getElementById('mapDots'); if(!md) return;
+  const k=vb.w/650, MS=myS(), alertIds=window._alertIds||[];
+  let html='';
+  MS.forEach(s=>{
+    const col=alertIds.includes(s.id)?'#ef4444':s.risk>45?'#f59e0b':'#22c55e';
+    const p=sitePower(s);
+    html+='<g class="mapdot '+(alertIds.includes(s.id)?'alert':'')+'" data-sid="'+s.id+'" onclick="goSite('+s.id+')" style="cursor:pointer">'+
+      '<circle cx="'+s.mx+'" cy="'+s.my+'" r="'+(22*k)+'" fill="transparent"/>'+
+      '<circle cx="'+s.mx+'" cy="'+s.my+'" r="'+(13*k)+'" fill="'+col+'" fill-opacity="0.25"/>'+
+      '<circle class="core" cx="'+s.mx+'" cy="'+s.my+'" r="'+(8*k)+'" fill="'+col+'" stroke="#fff" stroke-width="'+(2*k)+'"/>'+
+      '<text x="'+(s.mx+12*k)+'" y="'+(s.my-2*k)+'" font-size="'+(15*k)+'" font-weight="800" fill="#fff" stroke="#0a1626" stroke-width="'+(3.2*k)+'" paint-order="stroke" style="paint-order:stroke">'+s.name.split(' ')[0]+'</text>'+
+      '<text x="'+(s.mx+12*k)+'" y="'+(s.my+13*k)+'" font-size="'+(12.5*k)+'" font-weight="700" fill="#ffdf5e" stroke="#0a1626" stroke-width="'+(3*k)+'" paint-order="stroke" style="paint-order:stroke">'+s.wx.ambT.toFixed(1)+'℃ · '+p.toFixed(0)+'kW</text>'+
+      '</g>';
+  });
+  md.innerHTML=html;
+}
+let treeGroupMode=true;
+function setTreeMode(g){ treeGroupMode=g;
+  var gb=document.getElementById('treeGroupBtn'), ab=document.getElementById('treeAreaBtn');
+  if(gb){ gb.style.color=g?'#F98A0B':'var(--txt)'; gb.style.borderColor=g?'var(--orange)':'var(--line)'; }
+  if(ab){ ab.style.color=g?'var(--txt)':'#F98A0B'; ab.style.borderColor=g?'var(--line)':'var(--orange)'; }
+  renderTree();
+}
+function renderTree(){
+  const el=document.getElementById('siteTree'); if(!el) return;
+  const list=myS(); const key=treeGroupMode?'group':'region';
+  const groups={};
+  list.forEach(s=>{ (groups[s[key]]=groups[s[key]]||[]).push(s); });
+  let html='';
+  Object.keys(groups).sort().forEach(g=>{
+    const arr=groups[g];
+    html+='<div style="margin-bottom:6px;"><div style="font-weight:700;padding:4px 0;border-bottom:1px solid var(--line)">▸ '+g+' ('+arr.length+')</div>';
+    arr.forEach(s=>{ const dot=s.tripped?'var(--red)':(s.risk>45?'var(--amber)':'var(--green)');
+      html+='<div class="rowlink" style="padding:5px 6px;cursor:pointer;display:flex;align-items:center;gap:6px" onclick="goSite('+s.id+')"><span style="width:8px;height:8px;border-radius:50%;background:'+dot+';display:inline-block"></span><span style="flex:1">'+s.name+'</span><span class="small" style="margin:0">'+s.cap+'kW</span></div>';
+    });
+    html+='</div>';
+  });
+  el.innerHTML=html||'<div class="small">사이트가 없습니다.</div>';
+}
+function skyText(sky){ return sky>=4?'흐림':sky>=3?'구름많음':'맑음'; }
+function skyIcon(sky){ return sky>=4?'☁️':sky>=3?'⛅':'☀️'; }
+function renderWx(){
+  const el=document.getElementById('wxWidget'); if(!el) return;
+  const list=myS(); if(!list.length){ el.innerHTML=''; return; }
+  const s = list.includes(S[curSite])?S[curSite]:list[0]; const w=s.wx;
+  el.innerHTML='<h3 style="margin:0 0 6px">지역 기상정보 · 현장 기상센서</h3>'+
+    '<div class="small" style="margin:0 0 6px">'+s.region+' · '+s.name+'</div>'+
+    '<div class="row" style="align-items:center;gap:10px;"><div style="font-size:34px">'+skyIcon(w.sky)+'</div>'+
+    '<div><div style="font-size:24px;font-weight:800">'+w.ambT.toFixed(1)+' ℃</div><div class="small" style="margin:0">'+skyText(w.sky)+'</div></div></div>'+
+    '<table style="min-width:0;margin-top:8px"><tbody>'+
+    '<tr><td class="small">일사량(POA)</td><td style="text-align:right;font-weight:700">'+w.irr+' W/㎡</td></tr>'+
+    '<tr><td class="small">모듈온도</td><td style="text-align:right;font-weight:700">'+w.modT.toFixed(1)+' ℃</td></tr>'+
+    '<tr><td class="small">외기온도</td><td style="text-align:right;font-weight:700">'+w.ambT.toFixed(1)+' ℃</td></tr>'+
+    '<tr><td class="small">습도</td><td style="text-align:right;font-weight:700">'+w.reh+' %</td></tr>'+
+    '<tr><td class="small">풍속</td><td style="text-align:right;font-weight:700">'+w.wind.toFixed(1)+' m/s</td></tr>'+
+    '</tbody></table>'+
+    '<div class="small" style="margin-top:6px;color:var(--sub)">※ 기상청 API + 현장 기상센서(일사량계·모듈온도) 연동</div>';
+}
+function daySeries(s){
+  if(s._day) return s._day;
+  const N=96,t=[],cur=[],volt=[],pow=[],temp=[];
+  for(let i=0;i<N;i++){
+    const hh=Math.floor(i/4),mm=(i%4)*15;
+    t.push(String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0'));
+    const hf=i/4, f=Math.max(0,Math.sin((hf-5.5)/13*Math.PI)), r=rand01(i*7+s.id*131);
+    pow.push(+(s.cap*f*(0.9+r*0.12)).toFixed(1));
+    const a=(8.5+r*1.5)*f;
+    cur.push([+a.toFixed(2), +(a*0.98).toFixed(2), +(a*1.03).toFixed(2)]);
+    volt.push([620+Math.round(r*25), 615+Math.round(r*20), 626+Math.round(r*14)]);
+    temp.push([+(30+f*18+r*3).toFixed(1), Math.round(f*2+r)]);
+  }
+  s._day={t,cur,volt,pow,temp}; return s._day;
+}
+// 인버터별 스트링 채널 전류·전압 일간 시계열 (채널 수만큼 시리즈 생성)
+function daySeriesInv(s,k){
+  s._dayInv = s._dayInv||{};
+  if(s._dayInv[k] && s._dayInv[k].ch===s.invCh[k]) return s._dayInv[k];
+  const N=96, ch=s.invCh[k], t=[], cur=[], volt=[];
+  for(let i=0;i<N;i++){
+    const hh=Math.floor(i/4),mm=(i%4)*15;
+    t.push(String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0'));
+    const hf=i/4, f=Math.max(0,Math.sin((hf-5.5)/13*Math.PI));
+    const rowA=[], rowV=[];
+    for(let c=0;c<ch;c++){ const r=rand01(i*7+s.id*131+k*37+c*11);
+      rowA.push(+((8.3+r*1.8)*f).toFixed(2));
+      rowV.push(f>0 ? 612+Math.round(r*33) : 0);
+    }
+    cur.push(rowA); volt.push(rowV);
+  }
+  s._dayInv[k]={t,cur,volt,ch}; return s._dayInv[k];
+}
+function render(){
+  document.getElementById('clock').textContent = new Date().toLocaleString('ko-KR');
+  const MS = myS(), ms = mySites();
+  const totP = MS.reduce((x,s)=>x+sitePower(s),0);
+  document.getElementById('kSites').textContent = MS.length + "개";
+  document.getElementById('kPower').textContent = totP.toFixed(1)+" kW";
+  const todE = MS.reduce((x,s)=>x+s.energyToday,0);
+  document.getElementById('kEnergy').textContent = (todE/1000).toFixed(2)+" MWh";
+  document.getElementById('kRev').textContent = won(revenue(todE));
+  const myAlarms = alarms.filter(a=>ms.includes(a.siteId));
+  const myNotis = notis.filter(n=>ms.includes(n.siteId));
+  const un = myAlarms.filter(a=>!a.ack).length;
+  document.getElementById('kAlarms').textContent = un;
+  document.getElementById('kNoti').textContent = myNotis.length;
+  document.getElementById('alarmCnt').textContent = un? '●':'';
+  const worst = MS.reduce((a,b)=>a.risk>b.risk?a:b);
+  document.getElementById('kRisk').textContent = worst.risk.toFixed(0)+" 점";
+  document.getElementById('kRisk').style.color = riskColor(worst.risk);
+  document.getElementById('kRiskSite').textContent = worst.name;
+  const alertIds = [...new Set(myAlarms.filter(a=>!a.ack).map(a=>a.siteId))];
+  const asDiv=document.getElementById('alertSites');
+  if(alertIds.length){
+    asDiv.innerHTML = alertIds.map(id=>{
+      const n = myAlarms.filter(a=>!a.ack && a.siteId===id).length;
+      return `<div class="row" style="margin-bottom:8px;cursor:pointer" onclick="goSite(${id})"><span class="badge b-danger">⚠ ${S[id].name}</span><span class="small" style="margin-top:0">미확인 ${n}건 · 위험도 ${S[id].risk.toFixed(0)}점 — 클릭</span></div>`;
+    }).join('');
+  } else asDiv.innerHTML = '현재 미확인 경보가 없습니다.';
+  document.getElementById('almGenstop').textContent = MS.filter(x=>x.tripped).length;
+  document.getElementById('almNet').textContent = MS.filter(x=>x.netErr).length;
+  document.getElementById('almComm').textContent = MS.filter(x=>x.commErr).length;
+  document.getElementById('almGen').textContent = un;
+  renderWx(); renderTree();
+  // VPP 내일 발전량 예측 (통합관제 우측 패널)
+  const vppEl=document.getElementById('vppOv');
+  if(vppEl && MS.length){
+    const fl=fcFleet(MS);
+    const s0=MS.includes(S[curSite])?S[curSite]:MS[0];
+    const f0=fcTomorrow(s0);
+    vppEl.innerHTML = '<h3 style="margin:0 0 6px">VPP 내일 발전량 예측</h3>'+
+      '<div class="small" style="margin:0 0 6px">'+(f0.date.getMonth()+1)+'/'+f0.date.getDate()+' 예보 '+skyIcon(f0.sky)+' '+skyText(f0.sky)+' · 최고 '+f0.tmax+'℃</div>'+
+      '<table style="min-width:0"><tbody>'+
+      '<tr><td class="small">예상 발전량(전체)</td><td style="text-align:right;font-weight:700">'+(fl.e/1000).toFixed(2)+' MWh</td></tr>'+
+      '<tr><td class="small">예상 수익</td><td style="text-align:right;font-weight:700" class="rev">'+won(fl.rev)+'</td></tr>'+
+      '<tr><td class="small">VPP 입찰 권고(P90)</td><td style="text-align:right;font-weight:700;color:var(--orange)">'+(fl.p90/1000).toFixed(2)+' MWh</td></tr>'+
+      '</tbody></table>'+
+      '<div class="small" style="margin-top:4px;color:var(--sub)">※ 기상청 단기예보 기반 (데모 시뮬레이션)</div>';
+  }
+  window._alertIds = alertIds;
+  if(kakaoMapObj) updateKakaoOverlays(); else if(glMapObj) updateGLMarkers(); else drawMapDots();
+  const sg=document.getElementById('siteCards'); sg.innerHTML='';
+  MS.forEach(s=>{
+    const [lbl,cls]=riskBadge(s.risk);
+    const p = sitePower(s);
+    const alerted = alertIds.includes(s.id);
+    sg.innerHTML += `<div class="card site${alerted?' alerted':''}" data-sid="${s.id}" onclick="goSite(${s.id})">
+      <div class="row"><b>${s.name}</b><span class="badge b-org">${s.t==='inv'?'스트링인버터':'접속반'}</span><div class="spacer"></div><span class="badge ${cls}">${s.tripped?(s.autoTripped?'자동차단':'차단됨'):(alerted?'경보':lbl)}</span></div>
+      <div class="small">설비 ${s.cap}kW · 준공 ${s.cod} (가동 ${daysRun(s)}일)</div>
+      <div class="row" style="margin-top:10px;"><span style="font-size:20px;font-weight:800">${p.toFixed(1)} kW</span><div class="spacer"></div><span class="small">금일수익 <b class="rev">${won(revenue(s.energyToday))}</b></span></div>
+      <div class="row" style="margin-top:4px;"><span class="small">AI 위험도 <b style="color:${riskColor(s.risk)}">${s.risk.toFixed(0)}</b></span></div>
+      <div class="riskbar"><i style="width:${s.risk}%;background:${riskColor(s.risk)}"></i></div></div>`;
+  });
+  if(!ms.includes(curSite)) curSite=ms[0];
+  const s=S[curSite];
+  const [lbl,cls]=riskBadge(s.risk);
+  const sb=document.getElementById('siteBadge'); sb.textContent=s.tripped?'차단됨':lbl; sb.className='badge '+(s.tripped?'b-warn':cls);
+  document.getElementById('siteType').textContent = s.t==='inv' ? '스트링 인버터형 (인버터 로우데이터)' : '접속반형 (RS-485)';
+  document.getElementById('siteCap').textContent = '설비용량 '+s.cap.toLocaleString()+' kW';
+  document.getElementById('siteAc').innerHTML = `설비용량 <b>${s.cap.toLocaleString()} kW</b> · 인버터 <b>${s.invN}대</b> (스트링 ${s.invCh.join('·')}채널 — 신호 자동감지) · 모델 <b>${s.model}</b> · 패키지 ${s.pkg}대 · 통신 ${s.comm} · ${s.region} &nbsp;|&nbsp; AC ${s.ac.v.toFixed(1)}V·${s.ac.hz.toFixed(2)}Hz·PF ${s.ac.pf.toFixed(3)} &nbsp;|&nbsp; 🌤 일사량 ${s.wx.irr} W/㎡ · 모듈온도 ${s.wx.modT.toFixed(1)}℃ · 외기 ${s.wx.ambT.toFixed(1)}℃ · 풍속 ${s.wx.wind.toFixed(1)}m/s`;
+  if(curInv>=s.invN) curInv=0;
+  document.getElementById('hStr').textContent = `인버터 · 스트링 채널 현황 — 인버터 ${s.invN}대 (채널 ${s.invCh.join('·')} — 수신 신호 자동생성, 수동 원격 제어)`;
+  // 인버터 탭
+  const invTabs=document.getElementById('invTabs');
+  invTabs.innerHTML = Array.from({length:s.invN},(_,k)=>{
+    const trippedInv=s.invTrip[k];
+    const on = k===curInv;
+    return `<button class="btn btn-ghost" style="padding:5px 12px;font-size:12px;${on?'border-color:var(--orange);color:#F98A0B;font-weight:800;':''}${trippedInv?'color:var(--red);':''}" onclick="selInv(${k})">인버터 ${k+1} <span style="font-size:10px;color:var(--sub)">(${s.invCh[k]}ch)</span>${trippedInv?' ⏸':''}</button>`;
+  }).join('');
+  // 선택 인버터 요약
+  const base0=s.invOff[curInv], chN=s.invCh[curInv];
+  const chArr=s.strings.slice(base0, base0+chN);
+  const invP = s.tripped||s.invTrip[curInv] ? 0 : chArr.reduce((a,b)=>a+(b.iso?0:b.v*b.a),0)/1000*s.kf;
+  document.getElementById('invSumLine').innerHTML = `<b>인버터 ${curInv+1} (INV${curInv+1})</b> — 채널 <b>${chN}개</b> (신호 자동감지) · 출력 <b>${invP.toFixed(1)} kW</b> · 상태 ${s.invTrip[curInv]?'<span class="badge b-warn">정지됨</span>':(s.tripped?'<span class="badge b-warn">사이트 차단</span>':'<span class="badge b-ok">운전중</span>')} · 격리 채널 ${chArr.filter(x=>x.iso).length}/${chN}`;
+  document.getElementById('btnInvStop').style.display = s.invTrip[curInv]?'none':'';
+  document.getElementById('btnInvStart').style.display = s.invTrip[curInv]?'':'none';
+  document.getElementById('thDev').textContent = '스트링 채널';
+  const tb=document.querySelector('#strTable tbody'); tb.innerHTML='';
+  chArr.forEach((st,ci)=>{
+    const i=base0+ci;
+    const invStopped = s.invTrip[curInv];
+    let stat, act2;
+    if(st.iso){ stat='<span class="badge b-info">격리됨</span>'; act2=`<button class="btn btn-ghost" style="padding:4px 10px" onclick="reStr(${s.id},${i})">재투입</button>`; }
+    else if(invStopped){ stat='<span class="badge b-warn">인버터 정지</span>'; act2='-'; }
+    else if(st.bad){ stat='<span class="badge b-danger">열화 의심</span>'; act2=`<button class="btn btn-red" style="padding:4px 10px" onclick="isoStr(${s.id},${i})">격리</button>`; }
+    else if(s.tripped){ stat='<span class="badge b-warn">차단</span>'; act2='-'; }
+    else { stat='<span class="badge b-ok">정상</span>'; act2=`<button class="btn btn-ghost" style="padding:4px 10px" onclick="isoStr(${s.id},${i})">격리</button>`; }
+    const off = st.iso||s.tripped||invStopped;
+    // 경고 이력에서 이동해 온 경우 해당 채널 강조 (8초간)
+    const hl = window._hlCh && window._hlCh.site===s.id && window._hlCh.inv===curInv && window._hlCh.ch===ci && Date.now()<window._hlCh.until;
+    tb.innerHTML+=`<tr${st.bad&&!invStopped?' class="alarm-red"':''}${hl?' style="outline:3px solid var(--orange);outline-offset:-2px;background:rgba(249,138,11,.12)"':''}><td><b>ST-${String(ci+1).padStart(2,'0')}</b> <span class="small" style="margin:0">(INV${curInv+1})</span>${hl?' <span class="badge b-org">⚠ 경보 채널</span>':''}</td><td>${st.v.toFixed(0)}</td><td>${off?'0.00':st.a.toFixed(2)}</td><td>${off?'0.00':(st.v*st.a/1000).toFixed(2)}</td><td>${st.t.toFixed(1)}</td><td>${st.ins.toFixed(1)}</td><td>${stat}</td><td>${act2}</td></tr>`;
+  });
+  if(chC){
+    const D=daySeries(s), N=D.t.length;
+    const wI=(key)=>{ let n=Math.min(N,Math.max(8,zoomLen[key]||N)); let st=Math.round(48-n/2); st=Math.max(0,Math.min(N-n,st)); return [st,st+n]; };
+    // 선택 인버터의 전체 스트링 채널을 전류/전압 차트에 표시
+    const DI=daySeriesInv(s,curInv);
+    const chPal=['#3b82f6','#16a34a','#f59e0b','#ef4444','#a78bfa','#2dd4bf','#f472b6','#eab308','#0ea5e9','#fb923c','#65a30d','#c084fc','#14b8a6','#f43f5e','#84cc16','#6366f1','#f97316','#06b6d4','#d946ef','#22c55e','#facc15','#60a5fa','#e879f9','#34d399'];
+    document.getElementById('hCur').textContent = `인버터 ${curInv+1} 스트링 채널 전류 (A) — ${DI.ch}채널`;
+    const hv=document.getElementById('hVolt'); if(hv) hv.textContent = `인버터 ${curInv+1} 스트링 채널 전압 (V) — ${DI.ch}채널`;
+    const cis=document.getElementById('chartInvSel');
+    if(cis){ if(cis.options.length!==s.invN){ cis.innerHTML=Array.from({length:s.invN},(_,k)=>`<option value="${k}">인버터 ${k+1} (${s.invCh[k]}ch)</option>`).join(''); } cis.value=String(curInv); }
+    let W=wI('cur'); chC.data.labels=DI.t.slice(W[0],W[1]);
+    chC.data.datasets=Array.from({length:DI.ch},(_,k)=>({label:'ST-'+String(k+1).padStart(2,'0'), data:DI.cur.slice(W[0],W[1]).map(x=>x[k]), borderColor:chPal[k%24], borderWidth:1.2, pointRadius:0, tension:.3})); chC.update('none');
+    W=wI('volt'); chV.data.labels=DI.t.slice(W[0],W[1]);
+    chV.data.datasets=Array.from({length:DI.ch},(_,k)=>({label:'ST-'+String(k+1).padStart(2,'0'), data:DI.volt.slice(W[0],W[1]).map(x=>x[k]), borderColor:chPal[k%24], borderWidth:1.2, pointRadius:0, tension:.3})); chV.update('none');
+    W=wI('pow'); chP.data.labels=D.t.slice(W[0],W[1]);
+    chP.data.datasets=[{label:'사이트 출력 (kW)', data:D.pow.slice(W[0],W[1]), borderColor:'#F98A0B', backgroundColor:'rgba(249,138,11,.12)', fill:true, borderWidth:2, pointRadius:0, tension:.3}]; chP.update('none');
+    W=wI('tmp'); chT.data.labels=D.t.slice(W[0],W[1]);
+    chT.data.datasets=[{label:'내부온도 (°C)',data:D.temp.slice(W[0],W[1]).map(x=>x[0]),borderColor:'#ef4444',borderWidth:1.5,pointRadius:0,tension:.3},{label:'누적 아크 (회)',data:D.temp.slice(W[0],W[1]).map(x=>x[1]),borderColor:'#a78bfa',borderWidth:1.5,pointRadius:0,tension:.3}]; chT.update('none');
+    const rsel=document.getElementById('riskSel'); const rv=rsel?rsel.value:'all';
+    const palette=['#3b82f6','#16a34a','#ef4444','#f59e0b','#a78bfa','#F98A0B','#2dd4bf','#f472b6','#eab308','#0ea5e9','#fb923c','#65a30d'];
+    const list = (rv==='all') ? MS : MS.filter(x=>x.id===+rv);
+    const base=(list[0]||MS[0]||S[0]).riskHist; const now=new Date();
+    chR.data.labels=base.map((_,i)=>{ const t2=new Date(now-(base.length-1-i)*2000); return String(t2.getHours()).padStart(2,'0')+':'+String(t2.getMinutes()).padStart(2,'0'); });
+    chR.data.datasets=list.map((x,i2)=>({label:x.name,data:x.riskHist,borderColor:palette[i2%12],borderWidth:1.5,pointRadius:0,tension:.3}));
+    chR.update('none');
+  }
+  const ac=document.getElementById('aiCards'); ac.innerHTML='';
+  const warnSites=[...MS].filter(s2=>s2.risk>=45).sort((a,b)=>b.risk-a.risk);
+  if(warnSites.length===0){
+    ac.innerHTML=`<div class="card" style="grid-column:1/-1"><div class="row"><span class="badge b-ok">정상</span><span class="small" style="margin-top:0">주의단계(45점) 이상 발전소가 없습니다. 보유 사이트 전체 정상 운전 중입니다.</span></div></div>`;
+  } else warnSites.forEach(s2=>{
+    const insMin=Math.min(...s2.strings.map(x=>x.ins));
+    ac.innerHTML+=`<div class="card clickable" title="클릭 시 해당 발전소 상세로 이동하여 조치" onclick="goSite(${s2.id})"><div class="row"><b>${s2.name}</b><div class="spacer"></div><span class="badge ${riskBadge(s2.risk)[1]}">${s2.tripped?'차단중':riskBadge(s2.risk)[0]}</span></div>
+    <div class="big" style="color:${riskColor(s2.risk)};margin:8px 0">${s2.risk.toFixed(0)} 점</div>
+    <div class="small">절연 ${insMin.toFixed(1)}MΩ · 아크 ${Math.round(s2.arc)}회 · 온도 ${s2.temp.toFixed(1)}°C</div>
+    <div class="small" style="color:var(--orange);margin-top:4px">▶ 클릭 → 상세·조치 페이지 이동</div>
+    <div class="riskbar"><i style="width:${s2.risk}%;background:${riskColor(s2.risk)}"></i></div></div>`;
+  });
+  const aat=document.querySelector('#aiAlarmTable tbody'); aat.innerHTML='';
+  myAlarms.filter(a=>['주의','위험','자동차단'].includes(a.grade)).slice(0,40).forEach(a=>{
+    const go = a.inv!=null ? `goSiteCh(${a.siteId},${a.inv},${a.ch})` : `goReport(${a.siteId})`;
+    const tt = a.inv!=null ? '클릭 → 사이트 상세의 해당 스트링 채널로 이동(강조 표시)' : '클릭 → 보고서로 이동';
+    aat.innerHTML+=`<tr class="rowlink ${a.cls==='danger'?'alarm-red':''}" title="${tt}" onclick="${go}"><td>${a.time}</td><td>${a.site}</td><td><span class="badge ${a.cls==='danger'?'b-danger':'b-warn'}">${a.grade}</span></td><td>${a.risk}</td><td>${a.msg}${a.inv!=null?' <span class="badge b-info" style="font-size:10px">INV'+(a.inv+1)+'-ST'+String(a.ch+1).padStart(2,'0')+' ▶</span>':''}</td></tr>`;
+  });
+  const w=[...MS].sort((a,b)=>b.risk-a.risk)[0];
+  document.getElementById('aiExplain').innerHTML = w.risk>45 ?
+    `<b>AI 분석 요약:</b> <b>${w.name}</b>에서 위험 추세 관측(원인: ${badList(w).join(', ')||'격리 완료'}). 85점 도달 시 자동 차단 → 75점 이하 회복 시 자동 복구됩니다.`
+    : `<b>AI 분석 요약:</b> 보유 사이트 위험도가 정상 범위입니다.`;
+  const af = document.getElementById('alarmSel').value;
+  const fAlarms = myAlarms.filter(a=> af==='all' || a.siteId===+af);
+  const fNotis = myNotis.filter(n=> af==='all' || n.siteId===+af);
+  const at=document.querySelector('#alarmTable tbody'); at.innerHTML='';
+  fAlarms.slice(0,50).forEach(a=>{
+    // 경보 채널 즉시 격리/재투입 (격리 시 해당 경보 자동 '확인' 처리)
+    let chBtn='';
+    if(a.inv!=null){
+      const s3=S[a.siteId];
+      if(s3 && a.inv<s3.invN && a.ch<s3.invCh[a.inv]){
+        const gi=s3.invOff[a.inv]+a.ch;
+        const nm='INV'+(a.inv+1)+'-ST'+String(a.ch+1).padStart(2,'0');
+        chBtn = s3.strings[gi].iso
+          ? ` <button class="btn btn-ghost" style="padding:4px 8px" onclick="alarmReCh(${a.siteId},${a.inv},${a.ch})">${nm} 재투입</button>`
+          : ` <button class="btn btn-red" style="padding:4px 8px" onclick="alarmIsoCh(${a.siteId},${a.inv},${a.ch})">${nm} 격리</button>`;
+      }
+    }
+    const ackBtn = a.ack?'':`<button class="btn btn-ghost" style="padding:4px 10px" onclick="ackOne('${a.time}|${a.siteId}')">확인</button>`;
+    at.innerHTML+=`<tr class="${a.cls==='danger'?'alarm-red':''}"><td>${a.time}</td><td>${a.site}</td><td><span class="badge ${a.cls==='danger'?'b-danger':'b-warn'}">${a.grade}</span></td><td>${a.msg}</td><td>${a.risk}</td><td>${a.ack?'확인':'<b style="color:var(--red)">미확인</b>'}</td><td style="white-space:nowrap">${ackBtn}${chBtn}${!ackBtn&&!chBtn?'-':''}</td></tr>`;
+  });
+  const nt=document.querySelector('#notiTable tbody'); nt.innerHTML='';
+  fNotis.slice(0,30).forEach(n=>{
+    nt.innerHTML+=`<tr><td>${n.time}</td><td>${n.site}</td><td>${n.phone}</td><td>${n.ch}</td><td>${n.msg}</td><td><span class="badge b-ok">${n.st}</span></td></tr>`;
+  });
+  // ===== 보고서 (월 기준 · 분기/연간 자동 집계) =====
+  const rp = document.getElementById('repPeriod').value;
+  const rsv = document.getElementById('repSel').value;
+  const RL = MS.filter(s2=> rsv==='all' || s2.id===+rsv);
+  const pMap = {m:{n:'월간',mn:[5]}, q:{n:'분기',mn:[3,4,5]}, h:{n:'반기',mn:[0,1,2,3,4,5]}, y:{n:'연간',mn:[0,1,2,3,4,5,6,7,8,9,10,11]}};
+  const dim=[31,28,31,30,31,30,31,31,30,31,30,31];
+  const capTot = RL.reduce((a,s2)=>a+s2.cap,0);
+  const monthArr = Array.from({length:12},(_,m)=> RL.reduce((a,s2)=> a + (s2.invMonthly&&s2.invMonthly[m]?s2.invMonthly[m].reduce((x,y)=>x+y,0):0),0));
+  const cfOf = m => capTot? monthArr[m]/(capTot*24*dim[m])*100 : 0;
+  const prOf = m => Math.max(72, Math.min(87, 70 + cfOf(m)*0.9));
+  const scopeMonths = pMap[rp].mn;
+  const scopeE = scopeMonths.reduce((a,m)=>a+monthArr[m],0);
+  const scopeDays = scopeMonths.reduce((a,m)=>a+dim[m],0);
+  const scopeCF = capTot? scopeE/(capTot*24*scopeDays)*100 : 0;
+  const scopePR = scopeMonths.reduce((a,m)=>a+prOf(m),0)/scopeMonths.length;
+  const rAl = myAlarms.filter(a=> rsv==='all' || a.siteId===+rsv);
+  const trippedN = RL.filter(s2=>s2.tripped).length;
+  const downH = trippedN*6 + rAl.length*0.5;
+  const avail = Math.max(95, 100 - rAl.length*0.05 - trippedN*0.2);
+  document.getElementById('repTitle').textContent = pMap[rp].n+' 운영 보고서' + (rsv==='all'?' (전체)':' — '+(S[+rsv]?S[+rsv].name:''));
+  document.getElementById('rEt').textContent = pMap[rp].n+' 발전량';
+  document.getElementById('rEnergy').textContent=(scopeE/1000).toFixed(1)+" MWh";
+  document.getElementById('rRev').textContent=won(revenue(scopeE));
+  document.getElementById('rCO2').textContent=(scopeE*0.4594/1000).toFixed(1)+" t";
+  document.getElementById('rCF').textContent=scopeCF.toFixed(1)+" %";
+  document.getElementById('rPR').textContent=scopePR.toFixed(1)+" %";
+  document.getElementById('rAvail').textContent=avail.toFixed(2)+" %";
+  document.getElementById('rDown').textContent=downH.toFixed(1)+" h";
+  document.getElementById('rAlarm').textContent=rAl.length+"건";
+  document.getElementById('rPrevent').textContent=prevented+"건";
+  const scopeName = rsv==='all' ? ('보유 발전소 전체 ('+RL.length+'개소)') : (S[+rsv]?S[+rsv].name:'');
+  document.getElementById('repDocTitle').textContent = 'DASARON 태양광 발전소 '+pMap[rp].n+' 운영 보고서';
+  document.getElementById('repDocMeta').textContent = '대상: '+scopeName+' · 총 설비용량 '+capTot.toLocaleString()+' kW · 회계연도 2026';
+  document.getElementById('repDocDate').innerHTML = '발행일 '+new Date().toLocaleDateString('ko-KR')+'<br>발행 DASARON Solar Guard';
+  document.getElementById('repSummary').innerHTML = '<b>운영 요약(Executive Summary):</b> 대상 기간 총 발전량 <b>'+(scopeE/1000).toFixed(1)+' MWh</b>, 이용률(CF) <b>'+scopeCF.toFixed(1)+'%</b>, 성능비(PR) <b>'+scopePR.toFixed(1)+'%</b>, 가동률 <b>'+avail.toFixed(2)+'%</b>. CO₂ 약 <b>'+(scopeE*0.4594/1000).toFixed(1)+' t</b> 감축, 예상수익 <b>'+won(revenue(scopeE))+'</b>. 기간 중 경보 '+rAl.length+'건 발생, 사전조치 '+prevented+'건 수행. 다운타임 추정 '+downH.toFixed(1)+'h.';
+  const mt=document.querySelector('#repMonthly tbody'); mt.innerHTML='';
+  const mrow=(label,e,cf,pr,av,style)=> '<tr'+(style?' style="'+style+'"':'')+'><td>'+label+'</td><td>'+(e/1000).toFixed(1)+'</td><td>'+cf.toFixed(1)+'</td><td>'+pr.toFixed(1)+'</td><td>'+av.toFixed(2)+'</td><td>'+(e*0.4594/1000).toFixed(2)+'</td><td class="rev">'+won(revenue(e))+'</td></tr>';
+  const mnames=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const Q=[[0,1,2],[3,4,5],[6,7,8],[9,10,11]];
+  for(let q=0;q<4;q++){
+    Q[q].forEach(m=>{ mt.innerHTML+=mrow(mnames[m], monthArr[m], cfOf(m), prOf(m), 99.5); });
+    const qe=Q[q].reduce((a,m)=>a+monthArr[m],0), qd=Q[q].reduce((a,m)=>a+dim[m],0);
+    const qcf=capTot?qe/(capTot*24*qd)*100:0, qpr=Q[q].reduce((a,m)=>a+prOf(m),0)/3;
+    mt.innerHTML+=mrow((q+1)+'분기 소계', qe, qcf, qpr, 99.4, 'background:var(--panel2);font-weight:700');
+  }
+  const ye=monthArr.reduce((a,b)=>a+b,0);
+  const ycf=capTot?ye/(capTot*24*365)*100:0, ypr=monthArr.reduce((a,m,i)=>a+prOf(i),0)/12;
+  mt.innerHTML+=mrow('연간 합계', ye, ycf, ypr, 99.3, 'background:rgba(249,138,11,.14);font-weight:800');
+  const eOf = s2 => scopeMonths.reduce((a,m)=> a + (s2.invMonthly&&s2.invMonthly[m]?s2.invMonthly[m].reduce((x,y)=>x+y,0):0),0);
+  const rt=document.querySelector('#repTable tbody'); rt.innerHTML='';
+  RL.forEach(s2=>{
+    const e=eOf(s2); const cf=s2.cap? e/(s2.cap*24*scopeDays)*100:0; const pr=Math.max(72,Math.min(87,70+cf*0.9));
+    rt.innerHTML+='<tr><td>'+s2.name+'</td><td>'+s2.cap+'</td><td>'+Math.round(e).toLocaleString()+'</td><td>'+cf.toFixed(1)+'</td><td>'+pr.toFixed(1)+'</td><td>'+(e*0.4594).toFixed(0)+'</td><td class="rev">'+won(revenue(e))+'</td><td>'+myAlarms.filter(a=>a.siteId===s2.id).length+'</td><td>'+(s2.tripped?'96.1':'99.8')+'</td></tr>';
+  });
+  const evb=document.querySelector('#repEvents tbody'); evb.innerHTML='';
+  const evList=rAl.filter(a=>['주의','위험','자동차단','조치','복구'].includes(a.grade));   // 누적 경보이력 전체 표시
+  if(evList.length===0) evb.innerHTML='<tr><td colspan="6" class="small">기간 중 특이 이벤트가 없습니다. 전 사이트 정상 운전.</td></tr>';
+  else evList.forEach(a=>{ const act=a.grade==='자동차단'?'자동 차단 후 자동복구':a.grade==='위험'?'다채널 통보·현장점검':a.grade==='복구'?'재투입 완료':a.grade==='조치'?'원격 조치 완료':'점검 권고';
+    evb.innerHTML+='<tr><td>'+a.time+'</td><td>'+a.site+'</td><td><span class="badge '+(a.cls==='danger'?'b-danger':'b-warn')+'">'+a.grade+'</span></td><td>'+a.msg+'</td><td>'+a.risk+'</td><td>'+act+'</td></tr>'; });
+  renderAdm();
+  // ESS·EV
+  const myEss = ESS.filter(e=>ms.includes(e.site));
+  const myEv = EV.filter(v=>ms.includes(v.site));
+  const chgN = myEv.filter(v=>v.st==='충전중').length;
+  const dischSum = myEss.reduce((x,e)=>x+e.dischToday,0);
+  const dischRev = dischSum*SMP;
+  document.getElementById('eeKpi').innerHTML =
+    `<div class="card"><h3>ESS 평균 SOC / SOH</h3><div class="big">${myEss.length? (myEss.reduce((x,e)=>x+e.soc,0)/myEss.length).toFixed(0)+'% / '+(myEss.reduce((x,e)=>x+e.soh,0)/myEss.length).toFixed(1)+'%':'-'}</div><div class="small">ESS ${myEss.length}기</div></div>
+     <div class="card"><h3>ESS 충·방전</h3><div class="big">${myEss.reduce((x,e)=>x+e.p,0)} kW</div><div class="small">+ 충전 / − 방전 · 스케줄 자동운전</div></div>
+     <div class="card"><h3>금일 ESS 방전수익</h3><div class="big rev">${won(dischRev)}</div><div class="small">방전 ${dischSum.toFixed(0)} kWh × SMP ${SMP}원</div></div>
+     <div class="card"><h3>EV 충전기</h3><div class="big">${chgN}/${myEv.length} <span style="font-size:13px;color:var(--sub)">가동</span></div><div class="small">OCPP 2.0.1(정식판)</div></div>
+     <div class="card"><h3>금일 EV 충전량 / 결제</h3><div class="big">${myEv.reduce((x,v)=>x+v.ses,0).toFixed(1)} kWh</div><div class="small rev">${won(myEv.reduce((x,v)=>x+v.payToday,0))}</div></div>`;
+  const el=document.getElementById('essList'); el.innerHTML='';
+  myEss.forEach((e)=>{
+    const i = ESS.indexOf(e);
+    const mcls = e.mode==='충전'?'b-ok':e.mode==='방전'?'b-org':'b-info';
+    el.innerHTML += `<div style="border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;">
+      <div class="row"><b>${e.id}</b><span class="small" style="margin-top:0">${S[e.site].name}</span><div class="spacer"></div><span class="badge b-info">${e.auto?'스케줄 자동':'수동'}</span><span class="badge ${mcls}">${e.mode}</span></div>
+      <div class="row" style="margin-top:8px;"><span class="small" style="margin-top:0">SOC ${e.soc.toFixed(0)}% · SOH ${e.soh.toFixed(1)}% · ${e.p>0?'+':''}${e.p}kW · ${e.cap}kWh</span></div>
+      <div class="row"><span class="small" style="margin-top:0">PCS ${e.pcs} · 랙온도 ${e.temp.toFixed(1)}°C · 셀온도 ${e.cellT.toFixed(1)}°C · 사이클 ${Math.round(e.cycles)}회</span></div>
+      <div class="socbar"><i style="width:${e.soc}%"></i></div>
+      <div class="row" style="margin-top:10px;">
+        <button class="btn btn-ghost" style="padding:6px 12px" onclick="essSet(${i},'충전')">충전</button>
+        <button class="btn btn-ghost" style="padding:6px 12px" onclick="essSet(${i},'방전')">방전</button>
+        <button class="btn btn-ghost" style="padding:6px 12px" onclick="essSet(${i},'대기')">대기</button>
+        <button class="btn btn-ghost" style="padding:6px 12px;${e.auto?'border-color:var(--orange);color:#F98A0B':''}" onclick="essAuto(${i})">스케줄 자동</button>
+      </div></div>`;
+  });
+  if(myEss.length===0) el.innerHTML='<div class="small">보유 사이트에 등록된 ESS가 없습니다.</div>';
+  // ESS 방전 수익 창
+  const erc=document.getElementById('essRevCards');
+  if(erc) erc.innerHTML =
+    `<div class="card" style="background:var(--panel2)"><h3>금일 방전수익</h3><div class="big rev" style="font-size:20px">${won(dischRev)}</div><div class="small">${dischSum.toFixed(0)} kWh 방전</div></div>
+     <div class="card" style="background:var(--panel2)"><h3>월 누적 방전수익</h3><div class="big rev" style="font-size:20px">${won(myEss.reduce((x,e)=>x+e.dischMonth,0)*SMP)}</div><div class="small">${myEss.reduce((x,e)=>x+e.dischMonth,0).toFixed(0)} kWh</div></div>`;
+  const ert=document.querySelector('#essRevTable tbody');
+  if(ert){ ert.innerHTML='';
+    myEss.forEach(e=>{
+      ert.innerHTML+=`<tr><td><b>${e.id}</b></td><td>${S[e.site].name}</td><td>${e.dischToday.toFixed(1)}</td><td class="rev">${won(e.dischToday*SMP)}</td><td class="rev">${won(e.dischMonth*SMP)}</td><td>${Math.round(e.cycles)}회</td></tr>`;
+    });
+    if(!ert.innerHTML) ert.innerHTML='<tr><td colspan="6" class="small">등록된 ESS가 없습니다.</td></tr>';
+  }
+  const et=document.querySelector('#evTable tbody'); et.innerHTML='';
+  myEv.forEach((v)=>{
+    const i = EV.indexOf(v);
+    const scls = v.st==='충전중'?'b-ok':v.st==='점검'?'b-danger':v.st==='완료'?'b-info':'b-warn';
+    const act3 = v.st==='점검' ? '-' : `<button class="btn btn-ghost" style="padding:4px 10px" onclick="evToggle(${i})">${v.st==='충전중'?'중지':'시작'}</button>`;
+    et.innerHTML+=`<tr><td>${v.id}</td><td>${S[v.site].name}</td><td><span class="badge ${scls}">${v.st}</span></td><td>${v.kw}</td><td>${v.ses.toFixed(1)}</td><td>${act3}</td></tr>`;
+  });
+  if(myEv.length===0) et.innerHTML='<tr><td colspan="6" class="small">보유 사이트에 등록된 EV 충전기가 없습니다.</td></tr>';
+  // EV O&M — 충·방전 횟수·용량·결제·BMS
+  const eot=document.querySelector('#evOmTable tbody');
+  if(eot){ eot.innerHTML='';
+    myEv.forEach(v=>{
+      const bms = v.bms.link? `<span class="badge b-ok">연동 (SOH ${v.bms.soh}%)</span>` : '<span class="badge b-danger">미연동</span>';
+      eot.innerHTML+=`<tr><td><b>${v.id}</b></td><td>${v.chgCnt}회</td><td>${v.v2gCnt}회</td><td>${Math.round(v.cumChg).toLocaleString()}</td><td>${Math.round(v.cumV2g).toLocaleString()}</td><td class="rev">${won(v.payToday)}</td><td>${bms}</td></tr>`;
+    });
+    if(!eot.innerHTML) eot.innerHTML='<tr><td colspan="7" class="small">등록된 충전기가 없습니다.</td></tr>';
+  }
+  const epc=document.getElementById('evPayCards');
+  if(epc){
+    const payTot=myEv.reduce((x,v)=>x+v.payToday,0);
+    const sesTot=myEv.filter(v=>v.st==='충전중').length;
+    epc.innerHTML =
+      `<div class="card" style="background:var(--panel2)"><h3>금일 결제 합계</h3><div class="big rev" style="font-size:20px">${won(payTot)}</div><div class="small">진행 세션 ${sesTot}건</div></div>
+       <div class="card" style="background:var(--panel2)"><h3>월 추정 매출</h3><div class="big rev" style="font-size:20px">${won(payTot*30)}</div><div class="small">금일×30일 단순 추정</div></div>`;
+  }
+  updatePv(false);
+}
+function goSite(id){ curSite=id; siteSel.value=id; if(curInv>=S[id].invN) curInv=0; hideTip(); gotoView('site'); render(); }
+function ackOne(key){ const [tm,sid]=key.split('|'); const a=alarms.find(x=>x.time===tm && String(x.siteId)===sid && !x.ack); if(a) a.ack=true; render(); }
+function ackAll(){ const ms=mySites(); alarms.forEach(a=>{ if(ms.includes(a.siteId)) a.ack=true; }); render(); }
+function exportCSV(){
+  const rp = document.getElementById('repPeriod').value;
+  const dMap={m:30,q:91,h:182,y:365};
+  let csv="사이트,설비용량(kW),발전량(kWh),CO2감축(kg),예상수익(원)\n";
+  myS().forEach(s2=>{ const e=s2.cap*3.9*Math.min(dMap[rp],daysRun(s2))*s2.base/0.72; csv+=`${s2.name},${s2.cap},${e.toFixed(0)},${(e*0.4594).toFixed(0)},${Math.round(revenue(e))}\n`; });
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(["﻿"+csv],{type:'text/csv'})); a.download='DasaronSolar_보고서.csv'; a.click();
+}
+document.getElementById('repSel').onchange=()=>render();
+document.getElementById('repPeriod').onchange=()=>render();
+document.getElementById('alarmSel').onchange=()=>render();
+var _rk=document.getElementById('riskSel'); if(_rk) _rk.onchange=()=>render();
+
+// ================= 발전 모니터링 =================
+let pvSite = 5, pvTab = 'main', pvStatMode = 'hour', pvStatDay = 'today';
+let chG=null, chS=null, chI=null, chSB=null;
+const pvSel = document.getElementById('pvSel');
+pvSel.onchange = ()=>{ pvSite = +pvSel.value; updatePv(true); };
+document.querySelectorAll('.pvtab').forEach(b=>b.onclick=()=>{
+  pvTab = b.dataset.t;
+  document.querySelectorAll('.pvtab').forEach(x=>{x.style.borderColor='var(--line)';x.style.color='var(--txt)';});
+  b.style.borderColor='var(--orange)'; b.style.color='#F98A0B';
+  ['main','stat','inv','sites'].forEach(x=>document.getElementById('pv-'+x).classList.toggle('hidden', x!==pvTab));
+  updatePv(true);
+});
+document.getElementById('statMode').onchange = e=>{ pvStatMode=e.target.value; updatePv(true); };
+document.getElementById('invPeriod').onchange = ()=>updatePv(true);
+document.getElementById('btnPvToday').onclick = ()=>{ pvStatDay='today'; styleDayBtn(); updatePv(true); };
+document.getElementById('btnPvYest').onclick = ()=>{ pvStatDay='yest'; styleDayBtn(); updatePv(true); };
+// SMP·REC·가중치는 발전 모니터링에서 표시 전용 — 수정은 계정관리 > 수익 정산 설정
+document.getElementById('inSmp').value = SMP;
+document.getElementById('inRec').value = RECP;
+document.getElementById('inW').value = String(RECW.toFixed(1));
+// 계정관리 > 수익 정산 설정 (SMP·REC·가중치 — 전체 수익 계산에 반영)
+function syncAcctPrice(){
+  const a=document.getElementById('acSmp'), b=document.getElementById('acRec'), c=document.getElementById('acRecw');
+  if(a) a.value=SMP; if(b) b.value=RECP; if(c) c.value=RECW;
+}
+function saveAcctPrice(){
+  SMP = parseFloat(document.getElementById('acSmp').value) || SMP;
+  RECP = parseFloat(document.getElementById('acRec').value) || RECP;
+  RECW = parseFloat(document.getElementById('acRecw').value) || RECW;
+  try{ localStorage.setItem('sg_price', JSON.stringify({SMP,RECP,RECW})); }catch(e){}
+  document.getElementById('inSmp').value=SMP; document.getElementById('inRec').value=RECP; document.getElementById('inW').value=String(RECW);
+  toast(`정산 설정 저장: SMP ${SMP}원 · REC ${RECP.toLocaleString()}원 · 가중치 ${RECW} — 전체 화면에 적용`,'var(--blue)');
+  render();
+}
+function styleDayBtn(){
+  const a=document.getElementById('btnPvToday'), b=document.getElementById('btnPvYest');
+  [a,b].forEach(x=>{x.style.borderColor='var(--line)';x.style.color='var(--txt)';});
+  const on = pvStatDay==='today'?a:b; on.style.borderColor='var(--orange)'; on.style.color='#F98A0B';
+}
+const barValPlugin={ id:'barVal', afterDatasetsDraw(c){
+  const ds=c.data.datasets[0]; if(!ds) return;
+  const meta=c.getDatasetMeta(0); if(!meta||!meta.data) return;
+  const n=meta.data.length, ctx=c.ctx;
+  ctx.save(); ctx.fillStyle='#334155'; ctx.textAlign='center'; ctx.textBaseline='bottom';
+  ctx.font=(n>15?'8px':'9px')+" 'Malgun Gothic',sans-serif";
+  meta.data.forEach((bar,i)=>{ const v=ds.data[i]; if(v==null||v===0) return;
+    ctx.fillText(Math.round(v).toLocaleString(), bar.x, bar.y-2); });
+  ctx.restore();
+}};
+function initPvCharts(){
+  if(chG) return;
+  chG = new Chart(document.getElementById('chGauge'),{type:'doughnut',
+    data:{datasets:[{data:[0,100],backgroundColor:['#F98A0B','#e5eaf1'],borderWidth:0}]},
+    options:{rotation:-90,circumference:180,cutout:'72%',plugins:{legend:{display:false},tooltip:{enabled:false}},animation:false,maintainAspectRatio:false}});
+  chS = new Chart(document.getElementById('chStat'),{type:'bar',
+    plugins:[barValPlugin],
+    data:{labels:[],datasets:[{label:'발전량(kWh)',data:[],backgroundColor:'#b33a2f'}]},
+    options:{animation:false,maintainAspectRatio:false,
+      plugins:{title:{display:true,text:'',color:'#93a0b8',font:{size:12}}, legend:{labels:{color:'#93a0b8'}}, tooltip:{position:'follow',backgroundColor:'#1a2130',borderColor:'#F98A0B',borderWidth:1}},
+      scales:{y:{grid:{color:'#e2e8f0'},ticks:{color:'#93a0b8'}},x:{grid:{display:false},ticks:{color:'#93a0b8',font:{size:10}}}}}});
+  chI = new Chart(document.getElementById('chInv'),{type:'line',data:{labels:[],datasets:[]},
+    options:{animation:false,maintainAspectRatio:false,spanGaps:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{title:{display:true,text:'',color:'#93a0b8',font:{size:12}}, legend:{labels:{color:'#93a0b8',boxWidth:10,font:{size:10}}}, tooltip:{position:'follow',mode:'index',intersect:false,backgroundColor:'#1a2130',borderColor:'#F98A0B',borderWidth:1}},
+      scales:{y:{grid:{color:'#e2e8f0'},ticks:{color:'#93a0b8'}},x:{grid:{color:'#222b3d'},ticks:{color:'#93a0b8',font:{size:9}}}}}});
+  chSB = new Chart(document.getElementById('chSitesBar'),{type:'bar',
+    plugins:[barValPlugin],
+    data:{labels:[],datasets:[{label:'현재출력(kW)',data:[],backgroundColor:'#F98A0B'},{label:'설비용량(kW)',data:[],backgroundColor:'#d9e1ec'}]},
+    options:{animation:false,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#93a0b8'}}, tooltip:{position:'follow',backgroundColor:'#1a2130',borderColor:'#F98A0B',borderWidth:1}},
+      scales:{y:{grid:{color:'#e2e8f0'},ticks:{color:'#93a0b8'}},x:{grid:{display:false},ticks:{color:'#93a0b8',font:{size:10},maxRotation:45}}}}});
+}
+function updatePv(force){
+  if(document.getElementById('v-pv').classList.contains('hidden')) return;
+  initPvCharts();
+  if(!mySites().includes(pvSite)) pvSite=mySites()[0];
+  const s = S[pvSite];
+  const st = document.getElementById('pvStatus');
+  st.textContent = s.tripped ? '차단됨' : '발전중';
+  st.className = 'badge ' + (s.tripped ? 'b-warn' : 'b-ok');
+  const p = sitePower(s), pct = Math.min(100, p/s.cap*100);
+  chG.data.datasets[0].data = [pct, 100-pct];
+  chG.update('none');
+  document.getElementById('gaugePct').textContent = pct.toFixed(1)+' %';
+  document.getElementById('pvAc').textContent = `AC 출력: ${s.ac.v.toFixed(1)}V · ${s.ac.hz.toFixed(2)}Hz · PF ${s.ac.pf.toFixed(3)}`;
+  const yE = s.hourly.yest.reduce((a,b)=>a+b,0);        // 전일 발전량(kWh)
+  const yd = yearDays(s);                                // 1년 기준일(최대 365, 준공 미만 시 가동일)
+  const dom = NOW.getDate();                             // 이번 달 경과일수
+  const dim = new Date(NOW.getFullYear(), NOW.getMonth()+1, 0).getDate(); // 이번 달 총일수
+  const dAvg = s.cap*3.9*s.base/0.72;                    // 일평균 발전량(kWh)
+  const monthE = dAvg*(dom-1) + s.energyToday;           // 금월 발전량(1일~오늘)
+  const yearE = s.cap*3.9*yd*s.base/0.72;                // 최근 1년(또는 준공 후) 발전량
+  // 발전시간 = 발전량 / 설비용량. 월·년은 일평균 발전시간(발전량/용량/일수).
+  const hDay   = s.energyToday/s.cap;
+  const hYest  = yE/s.cap;
+  const hMonth = monthE/s.cap/dom;
+  const hYear  = yearE/s.cap/yd;
+  const u = x=>`<span style="font-size:12px;color:var(--sub)">${x}</span>`;
+  const kpis = [
+    ['현재출력 (금일 누적 발전시간)', p.toFixed(2)+' '+u('kW')+' / '+hDay.toFixed(2)+' '+u('h')],
+    ['금일 발전량 / 발전시간', (s.energyToday/1000).toFixed(2)+' '+u('MWh')+' / '+hDay.toFixed(2)+' '+u('h')],
+    ['전일 발전량 / 발전시간', (yE/1000).toFixed(2)+' '+u('MWh')+' / '+hYest.toFixed(2)+' '+u('h')],
+    ['금월 발전량 / 발전시간(일평균)', (monthE/1000).toFixed(2)+' '+u('MWh')+' / '+hMonth.toFixed(2)+' '+u('h/일')],
+    ['1년 발전량 / 발전시간(일평균) — 가동 '+yd+'일', (yearE/1000).toFixed(1)+' '+u('MWh')+' / '+hYear.toFixed(2)+' '+u('h/일')],
+    ['누적발전량 (준공 후 '+daysRun(s)+'일) · 1일 평균 발전시간', (s.cum/1e6).toFixed(2)+' '+u('GWh')+' / '+(s.cum/daysRun(s)/s.cap).toFixed(2)+' '+u('h/일')],
+    ['일평균 발전량 / 발전시간 (누적기준)', (s.cum/daysRun(s)/1000).toFixed(2)+' '+u('MWh')+' / '+(s.cum/daysRun(s)/s.cap).toFixed(2)+' '+u('h')],
+  ];
+  document.getElementById('pvKpi').innerHTML = kpis.map(k=>`<tr><td style="color:var(--sub)">${k[0]}</td><td style="text-align:right;font-size:17px;font-weight:800;color:#2563eb">${k[1]}</td></tr>`).join('');
+  const eff = SMP + RECW*RECP/1000;
+  const revs = [
+    ['금일 예상수익', won(revenue(s.energyToday)), `${(s.energyToday/1000).toFixed(2)} MWh`],
+    ['월간 예상수익', won(revenue(monthE) + revenue(dAvg*(dim-dom))), '금월 누계+잔여일 추정'],
+    ['연간 예상수익', won(revenue(dAvg*365)), '일평균×365 기준'],
+    ['누적 수익 (일별 저장 합계)', won(revenue(s.cum)), `준공 후 ${daysRun(s)}일 누적`],
+    ['kWh당 실효단가', eff.toFixed(1)+' 원', `SMP ${SMP} + REC ${(RECW*RECP/1000).toFixed(1)}`],
+  ];
+  document.getElementById('revCards').innerHTML = revs.map(r=>
+    `<div class="card" style="background:var(--panel2)"><h3>${r[0]}</h3><div class="big rev" style="font-size:20px">${r[1]}</div><div class="small">${r[2]}</div></div>`).join('');
+  // VPP 내일 발전량 예측 카드 (선택 발전소 + 보유 전체)
+  const vpc=document.getElementById('vppCards');
+  if(vpc){
+    const f=fcTomorrow(s), fl=fcFleet(myS());
+    vpc.innerHTML =
+      `<div class="card" style="background:var(--panel2)"><h3>내일 예보 (${f.date.getMonth()+1}/${f.date.getDate()})</h3><div class="big" style="font-size:20px">${skyIcon(f.sky)} ${skyText(f.sky)}</div><div class="small">최고기온 ${f.tmax}℃ · ${s.region}</div></div>`+
+      `<div class="card" style="background:var(--panel2)"><h3>${s.name} 예상 발전량</h3><div class="big" style="font-size:20px">${(f.e/1000).toFixed(2)} <span style="font-size:12px;color:var(--sub)">MWh</span></div><div class="small">발전시간 ${f.h.toFixed(2)} h · 예상수익 <b class="rev">${won(f.rev)}</b></div></div>`+
+      `<div class="card" style="background:var(--panel2)"><h3>VPP 입찰 권고량 (P90)</h3><div class="big" style="font-size:20px;color:var(--orange)">${(f.p90/1000).toFixed(2)} <span style="font-size:12px;color:var(--sub)">MWh</span></div><div class="small">예측의 90% — 보수적 신뢰하한</div></div>`+
+      `<div class="card" style="background:var(--panel2)"><h3>보유 전체 예상 (내일)</h3><div class="big" style="font-size:20px">${(fl.e/1000).toFixed(2)} <span style="font-size:12px;color:var(--sub)">MWh</span></div><div class="small">P90 ${(fl.p90/1000).toFixed(2)} MWh · <b class="rev">${won(fl.rev)}</b></div></div>`;
+  }
+  // 보유 발전소 전체 합계 (메인)
+  const SUM=myS();
+  const sumCap=SUM.reduce((a,x)=>a+x.cap,0);
+  const sumToday=SUM.reduce((a,x)=>a+x.energyToday,0);
+  const sumCum=SUM.reduce((a,x)=>a+x.cum,0);
+  const sumPow=SUM.reduce((a,x)=>a+sitePower(x),0);
+  const psum=document.getElementById('pvSum');
+  if(psum) psum.innerHTML=
+    `<div class="card" style="background:var(--panel2)"><h3>합계 설비용량</h3><div class="big" style="font-size:20px">${sumCap.toLocaleString()} <span style="font-size:12px;color:var(--sub)">kW</span></div><div class="small">${SUM.length}개소</div></div>`+
+    `<div class="card" style="background:var(--panel2)"><h3>현재 총 출력</h3><div class="big" style="font-size:20px">${sumPow.toFixed(1)} <span style="font-size:12px;color:var(--sub)">kW</span></div><div class="small">가동률 ${(sumCap?sumPow/sumCap*100:0).toFixed(1)}%</div></div>`+
+    `<div class="card" style="background:var(--panel2)"><h3>금일 총 발전량 / 수익</h3><div class="big rev" style="font-size:20px">${(sumToday/1000).toFixed(2)} <span style="font-size:12px;color:var(--sub)">MWh</span></div><div class="small rev">${won(revenue(sumToday))}</div></div>`+
+    `<div class="card" style="background:var(--panel2)"><h3>누적 총 발전량</h3><div class="big" style="font-size:20px">${(sumCum/1e6).toFixed(2)} <span style="font-size:12px;color:var(--sub)">GWh</span></div><div class="small rev">${won(revenue(sumCum))}</div></div>`;
+  // 발전소별 요약 칩 — 클릭 시 해당 사이트 상세로 이동
+  const ppl=document.getElementById('pvPlantList');
+  if(ppl) ppl.innerHTML = SUM.map(x=>{
+    const px=sitePower(x);
+    const col = x.tripped?'var(--red)':(x.risk>45?'var(--amber)':'var(--green)');
+    return `<div class="clickable" onclick="goSite(${x.id})" title="클릭 → ${x.name} 사이트 상세" style="border:1px solid var(--line);border-radius:10px;padding:7px 12px;background:var(--panel2);display:flex;align-items:center;gap:8px;">
+      <span style="width:8px;height:8px;border-radius:50%;background:${col};display:inline-block"></span><b style="font-size:12.5px">${x.name}</b>
+      <span class="small" style="margin:0">${px.toFixed(1)} kW · 금일 ${Math.round(x.energyToday).toLocaleString()} kWh</span></div>`;
+  }).join('');
+  // 사이트별 출력 탭 — 실시간 갱신 (통합 모니터링 포함)
+  if(pvTab==='sites' && chSB){
+    const list=myS();
+    chSB.data.labels = list.map(x=>x.name);
+    chSB.data.datasets[0].data = list.map(x=>+sitePower(x).toFixed(1));
+    chSB.data.datasets[1].data = list.map(x=>x.cap);
+    chSB.update('none');
+    const sot=document.querySelector('#sitesOutTable tbody');
+    if(sot){
+      sot.innerHTML = list.map(x=>{
+        const px=sitePower(x), pctx=x.cap?px/x.cap*100:0;
+        const stx = x.tripped?'<span class="badge b-warn">차단</span>':(x.risk>45?'<span class="badge b-warn">주의</span>':'<span class="badge b-ok">발전중</span>');
+        return `<tr class="rowlink" onclick="goSite(${x.id})"><td><b>${x.name}</b></td><td>${x.cap.toLocaleString()}</td><td style="font-weight:700">${px.toFixed(1)}</td><td>${pctx.toFixed(1)}</td><td>${Math.round(x.energyToday).toLocaleString()}</td><td>${(x.energyToday/x.cap).toFixed(2)}</td><td class="rev">${won(revenue(x.energyToday))}</td><td>${stx}</td></tr>`;
+      }).join('');
+    }
+    const imt=document.querySelector('#intMonTable tbody');
+    if(imt && isAdmin()){
+      const rows=[];
+      ACC.filter(a=>a.role==='user').forEach(a=>{
+        const ids = a.sites==='all'? S.map(x=>x.id) : a.sites;
+        const arr = ids.map(i=>S[i]).filter(Boolean);
+        if(!arr.length) return;
+        const capT=arr.reduce((x,y)=>x+y.cap,0), pT=arr.reduce((x,y)=>x+sitePower(y),0), eT=arr.reduce((x,y)=>x+y.energyToday,0);
+        const alN=alarms.filter(al=>!al.ack && ids.includes(al.siteId)).length;
+        const tag = arr.length>1?' <span class="badge b-info">통합</span>':'';
+        rows.push(`<tr><td><b>${a.name}</b> (${a.id})${tag}</td><td>${arr.length}개소</td><td>${capT.toLocaleString()}</td><td style="font-weight:700">${pT.toFixed(1)}</td><td>${(capT?pT/capT*100:0).toFixed(1)}</td><td>${Math.round(eT).toLocaleString()}</td><td class="rev">${won(revenue(eT))}</td><td>${alN?'<b style="color:var(--red)">'+alN+'건</b>':'0'}</td></tr>`);
+      });
+      imt.innerHTML = rows.join('') || '<tr><td colspan="8" class="small">발전주 계정이 없습니다.</td></tr>';
+    }
+  }
+  if(!force) return;
+  if(pvTab==='stat'){
+    const hourBtns = pvStatMode==='hour';
+    document.getElementById('btnPvToday').style.display = hourBtns?'':'none';
+    document.getElementById('btnPvYest').style.display = hourBtns?'':'none';
+    chS.options.plugins.title.text = `${s.name} — 설비용량 ${s.cap} kW`;
+    if(pvStatMode==='hour'){
+      chS.data.labels = Array.from({length:24},(_,h)=>String(h).padStart(2,'0')+':00');
+      chS.data.datasets[0].data = pvStatDay==='today'? s.hourly.today : s.hourly.yest;
+      chS.data.datasets[0].label = '시간발전량(kWh) — ' + (pvStatDay==='today'?'당일':'전일');
+    } else if(pvStatMode==='day'){
+      chS.data.labels = Array.from({length:31},(_,d)=>String(d+1).padStart(2,'0'));
+      const daily = s.invDaily.map(d=>d.reduce((x,y)=>x+y,0));
+      chS.data.datasets[0].data = [...daily, Math.round(s.energyToday), ...Array(26).fill(0)].slice(0,31);
+      chS.data.datasets[0].label = '일일발전량(kWh) — 2026년 7월';
+    } else if(pvStatMode==='month'){
+      chS.data.labels = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+      chS.data.datasets[0].data = s.invMonthly.map(mm=>mm.reduce((x,y)=>x+y,0));
+      chS.data.datasets[0].label = '월간발전량(kWh) — 2026년';
+    } else {
+      chS.data.labels = ['2021','2022','2023','2024','2025'];
+      chS.data.datasets[0].data = s.invYearly.map(yy=>yy.reduce((x,y)=>x+y,0));
+      chS.data.datasets[0].label = '년간발전량(kWh) — 최근 5년';
+    }
+    const _sum=(chS.data.datasets[0].data||[]).reduce((a,b)=>a+(b||0),0);
+    const stEl=document.getElementById('statTotal');
+    if(stEl) stEl.textContent=`표시 기간 합계: ${Math.round(_sum).toLocaleString()} kWh · 발전시간 ${(s.cap?_sum/s.cap:0).toFixed(1)} h · 예상수익 ${won(revenue(_sum))}`;
+    chS.update('none');
+    runDlSearch();
+  }
+  if(pvTab==='inv'){
+    const colors=['#3b82f6','#22c55e','#f59e0b','#ef4444','#a78bfa','#2dd4bf','#f472b6','#facc15'];
+    const ip = document.getElementById('invPeriod').value;
+    chI.options.plugins.title.text = `${s.name} — 설비용량 ${s.cap} kW · 인버터 ${s.invN}대`;
+    if(ip==='d'){
+      chI.data.labels = Array.from({length:31},(_,d)=>String(d+1).padStart(2,'0'));
+      chI.data.datasets = Array.from({length:s.invN},(_,k)=>({label:'INV-'+String(k+1).padStart(2,'0'),
+        data:[...s.invDaily.map(d=>d[k]), ...Array(27).fill(null)].slice(0,31),
+        borderColor:colors[k%8], borderWidth:2, pointRadius:3, tension:.3 }));
+    } else if(ip==='m'){
+      chI.data.labels = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+      chI.data.datasets = Array.from({length:s.invN},(_,k)=>({label:'INV-'+String(k+1).padStart(2,'0'),
+        data:s.invMonthly.map(mm=>mm[k]), borderColor:colors[k%8], borderWidth:2, pointRadius:3, tension:.3 }));
+    } else {
+      chI.data.labels = ['2021','2022','2023','2024','2025'];
+      chI.data.datasets = Array.from({length:s.invN},(_,k)=>({label:'INV-'+String(k+1).padStart(2,'0'),
+        data:s.invYearly.map(yy=>yy[k]||null), borderColor:colors[k%8], borderWidth:2, pointRadius:3, tension:.3 }));
+    }
+    chI.update('none');
+    const firstCol = ip==='d'?'일자':ip==='m'?'월':'연도';
+    const revCol = ip==='d'?'당일 수익':ip==='m'?'월 수익':'연 수익';
+    document.getElementById('invDetailTitle').textContent =
+      (ip==='d'?'일별':ip==='m'?'월별':'연간')+' 상세 (kWh · '+revCol+')';
+    const th = document.querySelector('#invTable thead');
+    th.innerHTML = '<tr><th>'+firstCol+'</th>' + Array.from({length:s.invN},(_,k)=>`<th>INV-${String(k+1).padStart(2,'0')}</th>`).join('') + '<th>합계</th><th>'+revCol+'</th></tr>';
+    const src = ip==='d'?s.invDaily : ip==='m'?s.invMonthly : s.invYearly;
+    const lab = i => ip==='d'?('7/'+String(i+1).padStart(2,'0')) : ip==='m'?((i+1)+'월') : String(2021+i);
+    const colSum = Array.from({length:s.invN},(_,k)=> src.reduce((a,row)=>a+(row[k]||0),0));
+    const grand = colSum.reduce((a,b)=>a+b,0);
+    const tbd = document.querySelector('#invTable tbody');
+    let ihtml = `<tr style="background:var(--panel2);font-weight:800"><td>합계</td>${colSum.map(v=>`<td>${Math.round(v).toLocaleString()}</td>`).join('')}<td>${Math.round(grand).toLocaleString()}</td><td class="rev">${won(revenue(grand))}</td></tr>`;
+    ihtml += src.map((row,i)=>{ const dsum=row.reduce((x,y)=>x+(y||0),0);
+      return `<tr><td>${lab(i)}</td>${row.map(v=>`<td>${(v||0).toLocaleString()}</td>`).join('')}<td style="font-weight:700">${Math.round(dsum).toLocaleString()}</td><td class="rev">${won(revenue(dsum))}</td></tr>`; }).join('');
+    tbd.innerHTML = ihtml;
+  }
+}
+styleDayBtn();
+
+// ================= 일일 발전량 조회·엑셀 =================
+function rand01(n){ const x=Math.sin(n)*43758.5453; return x-Math.floor(x); }
+function seasFactor(m){ const seas=[0.55,0.62,0.78,0.85,0.9,0.86,0.8,0.82,0.8,0.72,0.6,0.52]; return seas[m]; }
+function fmtDate(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function dailyGen(s, d){
+  const key = d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate() + s.id*131;
+  const rnd = rand01(key);
+  const base = s.cap*3.9*s.base/0.72 * seasFactor(d.getMonth());
+  return base*(0.80 + rnd*0.36);
+}
+function buildDaily(s, start, end){
+  const out=[]; const cod=new Date(s.cod); const today=new Date(NOW);
+  const d=new Date(start); d.setHours(0,0,0,0);
+  const lim=new Date(end); lim.setHours(0,0,0,0);
+  while(d<=lim){
+    if(d>=cod && d<=today) out.push({date:new Date(d), kwh:dailyGen(s,d)});
+    d.setDate(d.getDate()+1);
+  }
+  return out;
+}
+function dlRangeDates(){
+  const mode=document.getElementById('dlRange').value;
+  const end=new Date(NOW); let start=new Date(NOW);
+  if(mode==='1m') start.setMonth(start.getMonth()-1);
+  else if(mode==='3m') start.setMonth(start.getMonth()-3);
+  else if(mode==='6m') start.setMonth(start.getMonth()-6);
+  else if(mode==='1y') start.setFullYear(start.getFullYear()-1);
+  else {
+    const sv=document.getElementById('dlStart').value, ev=document.getElementById('dlEnd').value;
+    start = sv ? new Date(sv) : start;
+    return {start, end: ev ? new Date(ev) : end};
+  }
+  return {start, end};
+}
+let dlData=[];
+function runDlSearch(){
+  const s=S[pvSite]; const {start,end}=dlRangeDates();
+  dlData=buildDaily(s,start,end);
+  const tb=document.querySelector('#dlTable tbody');
+  tb.innerHTML = dlData.map(r=>{ const h=r.kwh/s.cap;
+    return `<tr><td>${fmtDate(r.date)}</td><td>${Math.round(r.kwh).toLocaleString()}</td><td>${h.toFixed(2)}</td><td>${(h/24*100).toFixed(1)}</td><td class="rev">${won(revenue(r.kwh))}</td></tr>`;
+  }).join('') || '<tr><td colspan="5" class="small">해당 기간 데이터가 없습니다.</td></tr>';
+  const totK=dlData.reduce((a,b)=>a+b.kwh,0);
+  document.getElementById('dlSummary').textContent = dlData.length
+    ? `${s.name} · ${dlData.length}일 · 합계 ${(totK/1000).toFixed(1)} MWh · ${won(revenue(totK))}` : '';
+}
+function exportDailyExcel(){
+  const s=S[pvSite];
+  if(!dlData.length) runDlSearch();
+  if(!dlData.length){ alert('다운로드할 데이터가 없습니다.'); return; }
+  const rows=[['일자','발전량(kWh)','발전시간(h)','이용률(%)','예상수익(원)']];
+  dlData.forEach(r=>{ const h=r.kwh/s.cap; rows.push([fmtDate(r.date), Math.round(r.kwh), +h.toFixed(2), +(h/24*100).toFixed(1), Math.round(revenue(r.kwh))]); });
+  const totK=dlData.reduce((a,b)=>a+b.kwh,0);
+  rows.push(['합계', Math.round(totK), +(totK/s.cap).toFixed(2), '', Math.round(revenue(totK))]);
+  const fn=`일일발전량_${s.name}_${fmtDate(dlData[0].date)}~${fmtDate(dlData[dlData.length-1].date)}`;
+  if(window.XLSX){
+    const ws=XLSX.utils.aoa_to_sheet(rows); const wb=XLSX.utils.book_new();
+    ws['!cols']=[{wch:12},{wch:14},{wch:12},{wch:10},{wch:14}];
+    XLSX.utils.book_append_sheet(wb,ws,'일일발전량'); XLSX.writeFile(wb, fn+'.xlsx');
+  } else {
+    const csv=rows.map(r=>r.join(',')).join('\n');
+    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(["﻿"+csv],{type:'text/csv'})); a.download=fn+'.csv'; a.click();
+  }
+}
+(function initDl(){
+  const toggle=()=>{ const c=document.getElementById('dlRange').value==='custom';
+    ['dlStart','dlEnd','dlStartLbl','dlEndLbl'].forEach(id=>document.getElementById(id).style.display=c?'':'none'); };
+  document.getElementById('dlRange').onchange=()=>{ toggle(); runDlSearch(); };
+  document.getElementById('btnDlSearch').onclick=runDlSearch;
+  document.getElementById('btnDlExcel').onclick=exportDailyExcel;
+  const e=new Date(NOW), sMonth=new Date(NOW); sMonth.setMonth(sMonth.getMonth()-1);
+  document.getElementById('dlEnd').value=fmtDate(e); document.getElementById('dlStart').value=fmtDate(sMonth);
+  toggle();
+})();
+
+// 발전률 게이지 호버 상세창
+document.getElementById('gaugeCard').addEventListener('mousemove', e=>{
+  const s=S[pvSite]; const p=sitePower(s), pct=Math.min(100,p/s.cap*100);
+  showTip(`<b>${s.name} — 발전률 상세</b><br>설비용량: ${s.cap} kW<br>현재출력: <b style="color:#4ade80">${p.toFixed(2)} kW</b><br>발전률: <b>${pct.toFixed(1)}%</b><br>금일 발전량: ${(s.energyToday/1000).toFixed(2)} MWh · 발전시간 ${(s.energyToday/s.cap).toFixed(2)}h<br>AC: ${s.ac.v.toFixed(0)}V · ${s.ac.hz.toFixed(2)}Hz · PF ${s.ac.pf.toFixed(2)}<br>상태: ${s.tripped?'차단중':'발전중'} · AI 위험도 ${s.risk.toFixed(0)}점`, e.clientX, e.clientY);
+});
+document.getElementById('gaugeCard').addEventListener('mouseleave', hideTip);
+bindHover('krMap','.mapdot', g=>+g.dataset.sid);
+bindHover('siteCards','.site', g=>+g.dataset.sid);
+
+mkCharts(); rebuildSelectors(); render(); setInterval(tick, 2000);
+(function initMapCtrl(){
+  const svg=document.getElementById('krMap'); if(!svg) return;
+  svg.addEventListener('wheel', e=>{ e.preventDefault(); const r=svg.getBoundingClientRect();
+    mapZoom(e.deltaY<0?0.85:1.18, (e.clientX-r.left)/r.width, (e.clientY-r.top)/r.height); }, {passive:false});
+  let drag=false,lx=0,ly=0;
+  svg.addEventListener('pointerdown', e=>{ drag=true; lx=e.clientX; ly=e.clientY; try{svg.setPointerCapture(e.pointerId);}catch(_){} });
+  svg.addEventListener('pointermove', e=>{ if(!drag) return; const r=svg.getBoundingClientRect();
+    vb.x-=(e.clientX-lx)/r.width*vb.w; vb.y-=(e.clientY-ly)/r.height*vb.h; lx=e.clientX; ly=e.clientY; clampVB(); applyVB(); });
+  svg.addEventListener('pointerup', ()=>{drag=false;}); svg.addEventListener('pointerleave', ()=>{drag=false;});
+  applyVB();
+})();
+if(KAKAO_APPKEY){
+  try{
+    var _ks=document.createElement('script'); _ks.async=true;
+    _ks.src='https://dapi.kakao.com/v2/maps/sdk.js?autoload=false&appkey='+KAKAO_APPKEY;
+    _ks.onload=function(){ if(window.kakao&&kakao.maps) kakao.maps.load(initKakaoMap); else initGLMap(); };
+    _ks.onerror=function(){ initGLMap(); };   // SDK 차단·미등록 도메인 → 벡터지도 폴백
+    document.head.appendChild(_ks);
+    setTimeout(function(){ if(!kakaoMapObj && !glMapObj) initGLMap(); }, 6000);
+  }catch(e){ initGLMap(); }
+}
+else initGLMap();   // 기본: MapLibre GL 벡터지도 (오프라인 시 내장 SVG 지도 자동 폴백)
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  try{ navigator.serviceWorker.register('./sw.js'); }catch(e){}
+}
+// ================= A/S 정비 · 고객관리 =================
+let AS_LIST=[
+  {date:'2026-06-28', site:5, type:'정기점검', desc:'접속반 단자 열화상 점검', mgr:'김정비', st:'완료'},
+  {date:'2026-07-01', site:2, type:'고장수리', desc:'PV-03 절연저항 저하 조치', mgr:'박기사', st:'진행'},
+  {date:'2026-07-03', site:7, type:'모듈세척', desc:'황사 오염 모듈 세척', mgr:'이현장', st:'접수'}
+];
+function renderAS(){
+  const tb=document.querySelector('#asTable tbody'); if(!tb) return;
+  const list=AS_LIST.filter(a=>a.site===curSite);   // 사이트 상세에 통합 — 현재 발전소만 표시
+  const cnt={접수:0,진행:0,완료:0}; list.forEach(a=>cnt[a.st]=(cnt[a.st]||0)+1);
+  document.getElementById('asKpi').innerHTML=
+    '<div class="card"><h3>정비 접수</h3><div class="big">'+(cnt.접수||0)+'</div><div class="small">대기</div></div>'+
+    '<div class="card"><h3>진행중</h3><div class="big" style="color:var(--amber)">'+(cnt.진행||0)+'</div><div class="small">작업중</div></div>'+
+    '<div class="card"><h3>완료</h3><div class="big kpi-ok">'+(cnt.완료||0)+'</div><div class="small">처리 완료</div></div>'+
+    '<div class="card"><h3>누적</h3><div class="big">'+list.length+'</div><div class="small">전체 건수</div></div>';
+  tb.innerHTML='';
+  list.slice().reverse().forEach((a)=>{ const i=AS_LIST.indexOf(a);
+    const scls=a.st==='완료'?'b-ok':a.st==='진행'?'b-warn':'b-info';
+    const nx=a.st==='접수'?'진행':a.st==='진행'?'완료':null;
+    const act=nx?'<button class="btn btn-ghost" style="padding:3px 8px" onclick="asAdvance('+i+')">'+nx+'</button>':'-';
+    tb.innerHTML+='<tr class="rowlink" onclick="goSite('+a.site+')"><td>'+a.date+'</td><td>'+S[a.site].name+'</td><td>'+a.type+'</td><td>'+a.desc+'</td><td>'+a.mgr+'</td><td><span class="badge '+scls+'">'+a.st+'</span></td><td onclick="event.stopPropagation()">'+act+'</td></tr>';
+  });
+  if(!list.length) tb.innerHTML='<tr><td colspan="7" class="small">정비 내역이 없습니다.</td></tr>';
+}
+function addAS(){
+  const site=curSite;   // 사이트 상세 내 통합 — 현재 발전소로 접수
+  const type=document.getElementById('asType').value; const desc=document.getElementById('asDesc').value.trim();
+  if(!desc){ alert('정비 내용을 입력하세요.'); return; }
+  const d=new Date(NOW); const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  AS_LIST.push({date:ds, site, type, desc, mgr:(CUR&&CUR.name)||'담당자', st:'접수'});
+  document.getElementById('asDesc').value=''; renderAS(); toast('정비 접수 완료: '+S[site].name,'var(--green)');
+}
+function asAdvance(i){ const a=AS_LIST[i]; if(!a) return; a.st=a.st==='접수'?'진행':'완료'; renderAS(); toast('정비 상태 변경: '+a.st,'var(--blue)'); }
+function renderCustomer(){
+  const tb=document.querySelector('#cusTable tbody'); if(!tb) return;
+  const q=((document.getElementById('cusSearch')||{}).value||'').trim().toLowerCase();
+  const owners=ACC.filter(a=>a.role==='user');
+  const ck=document.getElementById('cusKpi');
+  if(ck) ck.innerHTML=
+    '<div class="card"><h3>총 고객</h3><div class="big">'+owners.length+'</div><div class="small">발전주</div></div>'+
+    '<div class="card"><h3>통합 고객</h3><div class="big">'+owners.filter(a=>a.sites!=='all'&&a.sites.length>1).length+'</div><div class="small">다현장 보유</div></div>'+
+    '<div class="card"><h3>총 현장</h3><div class="big">'+S.length+'</div><div class="small">전체 발전소</div></div>'+
+    '<div class="card"><h3>총 설비용량</h3><div class="big">'+S.reduce((a,s)=>a+s.cap,0).toLocaleString()+'<span style="font-size:12px;color:var(--sub)"> kW</span></div><div class="small">합계</div></div>';
+  tb.innerHTML='';
+  owners.forEach(a=>{
+    const sites=a.sites==='all'?S.map(s=>s.id):a.sites;
+    const names=sites.map(i=>S[i].name).join(', ');
+    const cap=sites.reduce((x,i)=>x+S[i].cap,0);
+    const models=[...new Set(sites.map(i=>S[i].model))].join(', ');
+    const pkg=sites.reduce((x,i)=>x+S[i].pkg,0);
+    const regions=[...new Set(sites.map(i=>S[i].region))].join(', ');
+    if(q && !(a.name+' '+a.phone+' '+names+' '+regions).toLowerCase().includes(q)) return;
+    tb.innerHTML+='<tr class="rowlink" onclick="goSite('+sites[0]+')"><td><b>'+a.name+'</b></td><td>'+a.phone+'</td><td>'+names+'</td><td>'+cap.toLocaleString()+' kW</td><td>'+models+' / '+pkg+'대</td><td>'+regions+'</td><td onclick="event.stopPropagation()"><button class="btn btn-ghost" style="padding:3px 8px" onclick="goSite('+sites[0]+')">현장</button></td></tr>';
+  });
+  if(!tb.innerHTML) tb.innerHTML='<tr><td colspan="7" class="small">고객이 없습니다.</td></tr>';
+}
+// ================= 설정: 장비관리 · 다국어 =================
+function renderAdm(){
+  const tb=document.querySelector('#admTable tbody'); if(!tb) return;
+  const q=((document.getElementById('admSearch')||{}).value||'').trim().toLowerCase();
+  tb.innerHTML='';
+  S.forEach(s2=>{
+    const comm=s2.comm||(s2.t==='inv'?'Modbus TCP/IP':'RS-485');
+    const typ=s2.t==='inv'?'스트링인버터':'접속반';
+    if(q && !(s2.name+' '+typ+' '+comm).toLowerCase().includes(q)) return;
+    const rb=riskBadge(s2.risk);
+    const stat=s2.tripped?'<span class="badge b-warn">차단</span>':'<span class="badge '+rb[1]+'">'+(rb[0]==='정상'?'발전중':rb[0])+'</span>';
+    tb.innerHTML+='<tr class="rowlink" onclick="goSite('+s2.id+')"><td>'+s2.name+'</td><td>'+typ+'</td><td>'+s2.cap+'kW</td><td>'+s2.cod+' ('+daysRun(s2)+'일)</td><td>'+comm+'</td><td>'+stat+'</td>'+
+      '<td style="white-space:nowrap" onclick="event.stopPropagation()"><button class="btn btn-ghost" style="padding:3px 8px" onclick="goSite('+s2.id+')">상세</button> <button class="btn btn-ghost" style="padding:3px 8px" onclick="editAdm('+s2.id+')">수정</button></td></tr>';
+  });
+  if(!tb.innerHTML) tb.innerHTML='<tr><td colspan="7" class="small">검색 결과가 없습니다.</td></tr>';
+}
+function editAdm(id){
+  const s2=S[id]; const box=document.getElementById('admEdit'); if(!box) return;
+  box.style.display='';
+  document.getElementById('admEditId').value=id;
+  document.getElementById('admEditTitle').textContent='사이트 정보 수정 — '+s2.name;
+  document.getElementById('admEditName').value=s2.name;
+  document.getElementById('admEditCap').value=s2.cap;
+  document.getElementById('admEditCod').value=s2.cod;
+  document.getElementById('admEditComm').value=s2.comm||(s2.t==='inv'?'Modbus TCP/IP':'RS-485');
+  if(box.scrollIntoView) box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function saveAdm(){
+  const id=+document.getElementById('admEditId').value; const s2=S[id];
+  const name=document.getElementById('admEditName').value.trim();
+  const cap=parseFloat(document.getElementById('admEditCap').value)||s2.cap;
+  const cod=document.getElementById('admEditCod').value.trim()||s2.cod;
+  const comm=document.getElementById('admEditComm').value;
+  if(!name){ alert('발전소명을 입력하세요.'); return; }
+  if(!confirm('['+s2.name+'] 정보를 저장하시겠습니까?\n변경 내용은 계정관리·모니터링 전체에 반영됩니다.')) return;
+  s2.name=name; s2.cap=cap; s2.cod=cod; s2.comm=comm; s2._day=null; s2._dayInv=null;
+  // 영속 저장 — 기본 사이트는 오버라이드, 신규 등록 발전소는 전체 저장
+  if(id<BASE_N){ SITE_OVR[id]={name,cap,cod,comm}; try{ localStorage.setItem('sg_siteovr', JSON.stringify(SITE_OVR)); }catch(e){} }
+  else savePlants();
+  document.getElementById('admEdit').style.display='none';
+  rebuildSelectors(); if(typeof isAdmin==='function'&&isAdmin()) renderAcct(); render();
+  toast('사이트 정보 저장 완료: '+name+' (계정관리 반영됨)','var(--green)');
+}
+// ---- 다국어 (핵심 UI) ----
+// 7개 국어: 한국어(기본)·영어·일본어·중국어·스페인어·프랑스어·독일어
+const LANGS=[['ko','한국어'],['en','English'],['ja','日本語'],['zh','中文'],['es','Español'],['fr','Français'],['de','Deutsch']];
+const I18N={
+ ko:{nav_overview:'통합관제',nav_pv:'발전 모니터링',nav_site:'사이트 상세',nav_essev:'ESS·EV',nav_ai:'AI 예지·자동대응',nav_alarm:'경보',nav_report:'보고서',nav_customer:'고객관리',nav_acct:'계정·고객관리',nav_admin:'설정',nav_logout:'로그아웃',login_btn:'로그인',set_lang:'언어 / 환경설정',set_language:'언어',set_reset:'기본값으로 되돌리기',
+  vpp_title:'VPP 내일 발전량 예측 — 기상청 단기예보 기반',vpp_note:'※ VPP(가상발전소) 입찰 참고용. 데모는 내장 예보 시뮬레이션이며, 정식판은 기상청 동네예보(단기예보) API + 발전소별 학습 보정으로 산출합니다. 입찰 권고량은 예측의 90%(P90, 보수적 신뢰하한)입니다.',
+  pv_tab_main:'메인',pv_tab_stat:'통계',pv_tab_inv:'인버터 분석',pv_tab_sites:'사이트별 출력',
+  pvs_out_title:'사이트별 실시간 출력 현황',pvs_table_title:'사이트별 출력·발전량·수익 (보유 발전소 전체)',pvs_int_title:'통합 모니터링 사용자 현황 — 발전주(통합계정)별 집계',pvs_int_desc:'여러 발전소를 보유한 통합 계정 사용자의 발전소 전체를 묶어 실시간 집계합니다.',
+  th_site:'사이트',th_cap:'용량(kW)',th_curout:'현재출력(kW)',th_genrate:'발전률(%)',th_today_e:'금일 발전량(kWh)',th_today_h:'금일 발전시간(h)',th_today_rev:'금일 수익(원)',th_status:'상태',th_owner:'발전주(계정)',th_sitecnt:'보유 발전소',th_alarm:'경보',
+  site_title:'사이트 상세',site_tripall:'전체 차단/정지',site_str_note:'※ 자동 대응이 아닌 <b>수동 원격 제어</b>입니다. 스트링 채널은 수신 신호에 따라 자동 생성되며(12·18·24채널 등), 채널별로 개별 격리·재투입할 수 있습니다.',
+  th_volt:'전압(V)',th_amp:'전류(A)',th_kw:'출력(kW)',th_temp:'온도(°C)',th_ins:'절연저항(MΩ)',th_remote:'원격 조치',
+  as_title:'A/S · 정비 관리 (이 발전소)',as_add:'정비 접수',th_date:'접수일',th_type:'구분',th_desc:'내용',th_mgr:'담당',th_action:'조치',
+  ee_title:'ESS · EV 충전 통합 관제',ee_sched_title:'ESS 운전 스케줄:',ee_sched_desc:'충전 10:00 ~ 15:00 (태양광 최대 발전 시간대) · 방전 15:00 ~ 익일 10:00 (SMP 정산). 스케줄 자동운전 중이며 수동 전환 시 해당 시간대만 우선 적용됩니다.',
+  ee_ess_title:'ESS 현황·제어 (SOC·SOH·PCS·셀온도)',ee_essrev_title:'ESS 방전 수익 (15:00 ~ 익일 10:00 방전분 × SMP)',
+  th_disch_today:'금일 방전량(kWh)',th_disch_rev:'금일 방전수익(원)',th_disch_month:'월 누적 수익(원)',th_cycles:'누적 사이클',
+  ee_essrev_note:'※ 방전수익 = 방전량 × SMP 단가. REC 가중치(ESS 연계 5.0 등)는 계정관리 > 수익 정산 설정에서 변경할 수 있습니다.',
+  ee_ev_title:'EV 충전기 현황·제어',th_charger:'충전기',th_session:'세션(kWh)',
+  ee_evom_title:'EV 관리 O&M — 충·방전 횟수·용량·결제·BMS 연동',th_chg_cnt:'충전 횟수',th_v2g_cnt:'방전(V2G) 횟수',th_cum_kwh:'누적 충전량(kWh)',th_cum_v2g:'누적 방전량(kWh)',th_pay_today:'금일 결제(원)',th_bms:'BMS 연동',
+  ee_bms_note:'※ BMS 연동: 차량·충전기 배터리관리시스템(BMS)과 OCPP 2.0.1 / ISO 15118 프로토콜로 SOC·SOH·셀온도를 수신합니다.',
+  ee_pay_title:'EV 결제 시스템 관리',ee_pay_member:'회원단가(원/kWh)',ee_pay_guest:'비회원단가(원/kWh)',btn_apply:'적용',
+  ee_pay_note:'※ 정식판: PG(카드·간편결제) 연동, 회원 앱 QR 인증, 로밍(환경부·한전) 정산 연계.',
+  ee_ai_title:'AI 에너지 최적화 연계(정식판):',ee_ai_desc:'SMP 고가 시간대 ESS 방전, 화재 위험 시 ESS·EV 즉시 정지, 피크컷, V2G 입찰 자동화.'},
+ en:{nav_overview:'Control Center',nav_pv:'Generation',nav_site:'Site Detail',nav_essev:'ESS·EV',nav_ai:'AI Prediction',nav_alarm:'Alarms',nav_report:'Reports',nav_customer:'Customers',nav_acct:'Accounts·Customers',nav_admin:'Settings',nav_logout:'Logout',login_btn:'Login',set_lang:'Language / Preferences',set_language:'Language',set_reset:'Reset to default',
+  vpp_title:'VPP Tomorrow Generation Forecast — based on KMA short-term forecast',vpp_note:'※ For VPP bidding reference. Demo uses built-in forecast simulation; full version uses KMA forecast API + per-plant learning correction. Recommended bid = 90% of forecast (P90).',
+  pv_tab_main:'Main',pv_tab_stat:'Statistics',pv_tab_inv:'Inverter Analysis',pv_tab_sites:'Output by Site',
+  pvs_out_title:'Real-time Output by Site',pvs_table_title:'Output · Energy · Revenue by Site (all owned plants)',pvs_int_title:'Integrated Monitoring Users — aggregated per owner account',pvs_int_desc:'Aggregates all plants of multi-site owner accounts in real time.',
+  th_site:'Site',th_cap:'Capacity(kW)',th_curout:'Output(kW)',th_genrate:'Rate(%)',th_today_e:'Today Energy(kWh)',th_today_h:'Today Hours(h)',th_today_rev:'Today Revenue(₩)',th_status:'Status',th_owner:'Owner(Account)',th_sitecnt:'Plants',th_alarm:'Alarms',
+  site_title:'Site Detail',site_tripall:'Trip All / Stop',site_str_note:'※ <b>Manual remote control</b> (not automatic). String channels are auto-created from incoming signals (12·18·24 ch, etc.) and can be individually isolated / reconnected.',
+  th_volt:'Voltage(V)',th_amp:'Current(A)',th_kw:'Power(kW)',th_temp:'Temp(°C)',th_ins:'Insulation(MΩ)',th_remote:'Remote Action',
+  as_title:'Service · Maintenance (this plant)',as_add:'New Ticket',th_date:'Date',th_type:'Type',th_desc:'Description',th_mgr:'Manager',th_action:'Action',
+  ee_title:'ESS · EV Charging Control',ee_sched_title:'ESS Schedule:',ee_sched_desc:'Charge 10:00–15:00 (PV peak) · Discharge 15:00–next day 10:00 (SMP settlement). Auto-scheduled; manual override applies temporarily.',
+  ee_ess_title:'ESS Status·Control (SOC·SOH·PCS·Cell temp)',ee_essrev_title:'ESS Discharge Revenue (15:00–10:00 discharge × SMP)',
+  th_disch_today:'Today Discharge(kWh)',th_disch_rev:'Today Revenue(₩)',th_disch_month:'Monthly Revenue(₩)',th_cycles:'Cycles',
+  ee_essrev_note:'※ Revenue = discharged kWh × SMP. REC weight is set in Accounts > Revenue Settings.',
+  ee_ev_title:'EV Chargers Status·Control',th_charger:'Charger',th_session:'Session(kWh)',
+  ee_evom_title:'EV O&M — Charge/Discharge Counts · Capacity · Payment · BMS',th_chg_cnt:'Charges',th_v2g_cnt:'Discharges(V2G)',th_cum_kwh:'Total Charged(kWh)',th_cum_v2g:'Total Discharged(kWh)',th_pay_today:'Today Payment(₩)',th_bms:'BMS Link',
+  ee_bms_note:'※ BMS link: receives SOC·SOH·cell temp via OCPP 2.0.1 / ISO 15118.',
+  ee_pay_title:'EV Payment Management',ee_pay_member:'Member(₩/kWh)',ee_pay_guest:'Guest(₩/kWh)',btn_apply:'Apply',
+  ee_pay_note:'※ Full version: PG (card/easy-pay), QR auth, roaming settlement.',
+  ee_ai_title:'AI Energy Optimization (full version):',ee_ai_desc:'ESS discharge at high SMP, instant ESS·EV stop on fire risk, peak-cut, V2G bidding.'},
+ ja:{nav_overview:'統合管制',nav_pv:'発電監視',nav_site:'サイト詳細',nav_essev:'ESS·EV',nav_ai:'AI予知',nav_alarm:'警報',nav_report:'レポート',nav_customer:'顧客管理',nav_acct:'アカウント·顧客',nav_admin:'設定',nav_logout:'ログアウト',login_btn:'ログイン',set_lang:'言語 / 環境設定',set_language:'言語',set_reset:'初期化',
+  vpp_title:'VPP 翌日発電量予測 — 気象庁短期予報ベース',vpp_note:'※ VPP(仮想発電所)入札参考用。デモは内蔵予報シミュレーション、正式版は気象庁予報API+発電所別学習補正。入札推奨量は予測の90%(P90)です。',
+  pv_tab_main:'メイン',pv_tab_stat:'統計',pv_tab_inv:'インバータ分析',pv_tab_sites:'サイト別出力',
+  pvs_out_title:'サイト別リアルタイム出力',pvs_table_title:'サイト別 出力・発電量・収益(保有全発電所)',pvs_int_title:'統合モニタリング利用者 — オーナー別集計',pvs_int_desc:'複数発電所を保有する統合アカウントをリアルタイム集計します。',
+  th_site:'サイト',th_cap:'容量(kW)',th_curout:'出力(kW)',th_genrate:'発電率(%)',th_today_e:'本日発電量(kWh)',th_today_h:'本日発電時間(h)',th_today_rev:'本日収益(₩)',th_status:'状態',th_owner:'発電主(アカウント)',th_sitecnt:'保有発電所',th_alarm:'警報',
+  site_title:'サイト詳細',site_tripall:'全遮断/停止',site_str_note:'※ 自動対応ではなく<b>手動遠隔制御</b>です。ストリングチャンネルは受信信号に応じて自動生成され(12·18·24chなど)、個別に隔離・再投入できます。',
+  th_volt:'電圧(V)',th_amp:'電流(A)',th_kw:'出力(kW)',th_temp:'温度(°C)',th_ins:'絶縁抵抗(MΩ)',th_remote:'遠隔操作',
+  as_title:'A/S・保守管理(この発電所)',as_add:'保守受付',th_date:'受付日',th_type:'区分',th_desc:'内容',th_mgr:'担当',th_action:'操作',
+  ee_title:'ESS・EV充電 統合管制',ee_sched_title:'ESS運転スケジュール:',ee_sched_desc:'充電 10:00~15:00(PVピーク)・放電 15:00~翌日10:00(SMP精算)。自動運転中、手動切替は一時適用。',
+  ee_ess_title:'ESS状況・制御 (SOC·SOH·PCS·セル温度)',ee_essrev_title:'ESS放電収益 (15:00~翌10:00放電分 × SMP)',
+  th_disch_today:'本日放電量(kWh)',th_disch_rev:'本日放電収益(₩)',th_disch_month:'月累計収益(₩)',th_cycles:'累計サイクル',
+  ee_essrev_note:'※ 放電収益 = 放電量 × SMP単価。REC加重値はアカウント管理 > 収益精算設定で変更可能。',
+  ee_ev_title:'EV充電器 状況・制御',th_charger:'充電器',th_session:'セッション(kWh)',
+  ee_evom_title:'EV管理O&M — 充放電回数・容量・決済・BMS連動',th_chg_cnt:'充電回数',th_v2g_cnt:'放電(V2G)回数',th_cum_kwh:'累計充電量(kWh)',th_cum_v2g:'累計放電量(kWh)',th_pay_today:'本日決済(₩)',th_bms:'BMS連動',
+  ee_bms_note:'※ BMS連動: OCPP 2.0.1 / ISO 15118でSOC·SOH·セル温度を受信。',
+  ee_pay_title:'EV決済システム管理',ee_pay_member:'会員単価(₩/kWh)',ee_pay_guest:'非会員単価(₩/kWh)',btn_apply:'適用',
+  ee_pay_note:'※ 正式版: PG(カード・簡単決済)連動、QR認証、ローミング精算。',
+  ee_ai_title:'AIエネルギー最適化(正式版):',ee_ai_desc:'SMP高価時間帯のESS放電、火災リスク時のESS·EV即時停止、ピークカット、V2G入札自動化。'},
+ zh:{nav_overview:'综合管制',nav_pv:'发电监控',nav_site:'站点详情',nav_essev:'ESS·EV',nav_ai:'AI预测',nav_alarm:'报警',nav_report:'报告',nav_customer:'客户管理',nav_acct:'账户·客户管理',nav_admin:'设置',nav_logout:'退出',login_btn:'登录',set_lang:'语言 / 设置',set_language:'语言',set_reset:'恢复默认',
+  vpp_title:'VPP 明日发电量预测 — 基于气象厅短期预报',vpp_note:'※ 供VPP(虚拟电厂)投标参考。演示为内置预报模拟，正式版使用气象厅预报API+电站学习校正。建议投标量为预测的90%(P90)。',
+  pv_tab_main:'主页',pv_tab_stat:'统计',pv_tab_inv:'逆变器分析',pv_tab_sites:'各站点输出',
+  pvs_out_title:'各站点实时输出',pvs_table_title:'各站点输出·发电量·收益(全部电站)',pvs_int_title:'综合监控用户 — 按业主账户汇总',pvs_int_desc:'实时汇总拥有多个电站的综合账户用户。',
+  th_site:'站点',th_cap:'容量(kW)',th_curout:'当前输出(kW)',th_genrate:'发电率(%)',th_today_e:'今日发电量(kWh)',th_today_h:'今日发电小时(h)',th_today_rev:'今日收益(₩)',th_status:'状态',th_owner:'业主(账户)',th_sitecnt:'电站数',th_alarm:'报警',
+  site_title:'站点详情',site_tripall:'全部切断/停止',site_str_note:'※ 非自动响应，为<b>手动远程控制</b>。组串通道按接收信号自动生成(12·18·24通道等)，可单独隔离·重投。',
+  th_volt:'电压(V)',th_amp:'电流(A)',th_kw:'功率(kW)',th_temp:'温度(°C)',th_ins:'绝缘电阻(MΩ)',th_remote:'远程操作',
+  as_title:'维修·保养管理(本电站)',as_add:'维修受理',th_date:'受理日',th_type:'类别',th_desc:'内容',th_mgr:'负责人',th_action:'操作',
+  ee_title:'ESS·EV充电综合管制',ee_sched_title:'ESS运行时间表:',ee_sched_desc:'充电 10:00~15:00(光伏高峰)·放电 15:00~次日10:00(SMP结算)。自动运行中，手动切换临时适用。',
+  ee_ess_title:'ESS状态·控制 (SOC·SOH·PCS·电芯温度)',ee_essrev_title:'ESS放电收益 (15:00~次日10:00放电 × SMP)',
+  th_disch_today:'今日放电量(kWh)',th_disch_rev:'今日放电收益(₩)',th_disch_month:'月累计收益(₩)',th_cycles:'累计循环',
+  ee_essrev_note:'※ 放电收益 = 放电量 × SMP单价。REC权重在账户管理 > 收益结算设置中修改。',
+  ee_ev_title:'EV充电桩状态·控制',th_charger:'充电桩',th_session:'会话(kWh)',
+  ee_evom_title:'EV管理O&M — 充放电次数·容量·结算·BMS联动',th_chg_cnt:'充电次数',th_v2g_cnt:'放电(V2G)次数',th_cum_kwh:'累计充电(kWh)',th_cum_v2g:'累计放电(kWh)',th_pay_today:'今日结算(₩)',th_bms:'BMS联动',
+  ee_bms_note:'※ BMS联动: 通过OCPP 2.0.1 / ISO 15118接收SOC·SOH·电芯温度。',
+  ee_pay_title:'EV结算系统管理',ee_pay_member:'会员单价(₩/kWh)',ee_pay_guest:'非会员单价(₩/kWh)',btn_apply:'应用',
+  ee_pay_note:'※ 正式版: PG(银行卡·快捷支付)、QR认证、漫游结算。',
+  ee_ai_title:'AI能源优化(正式版):',ee_ai_desc:'SMP高价时段ESS放电、火灾风险时ESS·EV立即停止、削峰、V2G投标自动化。'},
+ es:{nav_overview:'Control central',nav_pv:'Generación',nav_site:'Detalle sitio',nav_essev:'ESS·EV',nav_ai:'Predicción IA',nav_alarm:'Alarmas',nav_report:'Informes',nav_customer:'Clientes',nav_acct:'Cuentas·Clientes',nav_admin:'Ajustes',nav_logout:'Salir',login_btn:'Entrar',set_lang:'Idioma / Preferencias',set_language:'Idioma',set_reset:'Restablecer',
+  vpp_title:'Previsión VPP de generación de mañana — según pronóstico KMA',vpp_note:'※ Referencia para ofertas VPP. La demo usa simulación integrada; la versión completa usa la API de pronóstico KMA + corrección por planta. Oferta recomendada = 90% de la previsión (P90).',
+  pv_tab_main:'Principal',pv_tab_stat:'Estadísticas',pv_tab_inv:'Análisis inversor',pv_tab_sites:'Salida por sitio',
+  pvs_out_title:'Salida en tiempo real por sitio',pvs_table_title:'Salida · Energía · Ingresos por sitio (todas las plantas)',pvs_int_title:'Usuarios de monitoreo integrado — agregado por cuenta',pvs_int_desc:'Agrega en tiempo real todas las plantas de cuentas multi-sitio.',
+  th_site:'Sitio',th_cap:'Capacidad(kW)',th_curout:'Salida(kW)',th_genrate:'Tasa(%)',th_today_e:'Energía hoy(kWh)',th_today_h:'Horas hoy(h)',th_today_rev:'Ingresos hoy(₩)',th_status:'Estado',th_owner:'Propietario',th_sitecnt:'Plantas',th_alarm:'Alarmas',
+  site_title:'Detalle del sitio',site_tripall:'Cortar todo / Parar',site_str_note:'※ <b>Control remoto manual</b> (no automático). Los canales de string se crean automáticamente según las señales recibidas (12·18·24, etc.) y son aislables individualmente.',
+  th_volt:'Tensión(V)',th_amp:'Corriente(A)',th_kw:'Potencia(kW)',th_temp:'Temp(°C)',th_ins:'Aislamiento(MΩ)',th_remote:'Acción remota',
+  as_title:'Servicio · Mantenimiento (esta planta)',as_add:'Nueva orden',th_date:'Fecha',th_type:'Tipo',th_desc:'Descripción',th_mgr:'Encargado',th_action:'Acción',
+  ee_title:'Control integrado ESS · EV',ee_sched_title:'Horario ESS:',ee_sched_desc:'Carga 10:00–15:00 (pico FV) · Descarga 15:00–10:00 día sig. (liquidación SMP). Automático; el manual aplica temporalmente.',
+  ee_ess_title:'Estado·Control ESS (SOC·SOH·PCS·Temp celda)',ee_essrev_title:'Ingresos por descarga ESS (15:00–10:00 × SMP)',
+  th_disch_today:'Descarga hoy(kWh)',th_disch_rev:'Ingresos hoy(₩)',th_disch_month:'Ingresos mes(₩)',th_cycles:'Ciclos',
+  ee_essrev_note:'※ Ingresos = kWh descargados × SMP. El peso REC se ajusta en Cuentas > Ajustes de liquidación.',
+  ee_ev_title:'Cargadores EV — Estado·Control',th_charger:'Cargador',th_session:'Sesión(kWh)',
+  ee_evom_title:'O&M EV — Cargas/Descargas · Capacidad · Pago · BMS',th_chg_cnt:'Cargas',th_v2g_cnt:'Descargas(V2G)',th_cum_kwh:'Total cargado(kWh)',th_cum_v2g:'Total descargado(kWh)',th_pay_today:'Pago hoy(₩)',th_bms:'Enlace BMS',
+  ee_bms_note:'※ BMS: recibe SOC·SOH·temp de celda vía OCPP 2.0.1 / ISO 15118.',
+  ee_pay_title:'Gestión de pagos EV',ee_pay_member:'Socio(₩/kWh)',ee_pay_guest:'No socio(₩/kWh)',btn_apply:'Aplicar',
+  ee_pay_note:'※ Versión completa: pasarela de pago, QR, liquidación roaming.',
+  ee_ai_title:'Optimización energética IA (versión completa):',ee_ai_desc:'Descarga ESS en SMP alto, parada inmediata ESS·EV ante riesgo de incendio, peak-cut, ofertas V2G.'},
+ fr:{nav_overview:'Supervision',nav_pv:'Production',nav_site:'Détail site',nav_essev:'ESS·EV',nav_ai:'Prédiction IA',nav_alarm:'Alarmes',nav_report:'Rapports',nav_customer:'Clients',nav_acct:'Comptes·Clients',nav_admin:'Réglages',nav_logout:'Déconnexion',login_btn:'Connexion',set_lang:'Langue / Préférences',set_language:'Langue',set_reset:'Réinitialiser',
+  vpp_title:'Prévision VPP de production de demain — selon prévisions KMA',vpp_note:'※ Référence pour enchères VPP. La démo utilise une simulation intégrée ; la version complète utilise l’API KMA + correction par centrale. Offre recommandée = 90 % de la prévision (P90).',
+  pv_tab_main:'Principal',pv_tab_stat:'Statistiques',pv_tab_inv:'Analyse onduleur',pv_tab_sites:'Sortie par site',
+  pvs_out_title:'Sortie en temps réel par site',pvs_table_title:'Sortie · Énergie · Revenus par site (toutes centrales)',pvs_int_title:'Utilisateurs de supervision intégrée — agrégé par compte',pvs_int_desc:'Agrège en temps réel toutes les centrales des comptes multi-sites.',
+  th_site:'Site',th_cap:'Capacité(kW)',th_curout:'Sortie(kW)',th_genrate:'Taux(%)',th_today_e:'Énergie du jour(kWh)',th_today_h:'Heures du jour(h)',th_today_rev:'Revenus du jour(₩)',th_status:'État',th_owner:'Propriétaire',th_sitecnt:'Centrales',th_alarm:'Alarmes',
+  site_title:'Détail du site',site_tripall:'Tout couper / Arrêt',site_str_note:'※ <b>Commande manuelle à distance</b> (non automatique). Les canaux de string sont créés automatiquement selon les signaux reçus (12·18·24, etc.) et isolables individuellement.',
+  th_volt:'Tension(V)',th_amp:'Courant(A)',th_kw:'Puissance(kW)',th_temp:'Temp(°C)',th_ins:'Isolement(MΩ)',th_remote:'Action à distance',
+  as_title:'SAV · Maintenance (cette centrale)',as_add:'Nouvelle demande',th_date:'Date',th_type:'Type',th_desc:'Description',th_mgr:'Responsable',th_action:'Action',
+  ee_title:'Supervision intégrée ESS · EV',ee_sched_title:'Programme ESS :',ee_sched_desc:'Charge 10h00–15h00 (pic PV) · Décharge 15h00–10h00 lendemain (règlement SMP). Automatique ; le manuel s’applique temporairement.',
+  ee_ess_title:'État·Contrôle ESS (SOC·SOH·PCS·Temp cellule)',ee_essrev_title:'Revenus de décharge ESS (15h–10h × SMP)',
+  th_disch_today:'Décharge du jour(kWh)',th_disch_rev:'Revenus du jour(₩)',th_disch_month:'Revenus du mois(₩)',th_cycles:'Cycles',
+  ee_essrev_note:'※ Revenus = kWh déchargés × SMP. Le poids REC se règle dans Comptes > Paramètres de règlement.',
+  ee_ev_title:'Bornes EV — État·Contrôle',th_charger:'Borne',th_session:'Session(kWh)',
+  ee_evom_title:'O&M EV — Charges/Décharges · Capacité · Paiement · BMS',th_chg_cnt:'Charges',th_v2g_cnt:'Décharges(V2G)',th_cum_kwh:'Total chargé(kWh)',th_cum_v2g:'Total déchargé(kWh)',th_pay_today:'Paiement du jour(₩)',th_bms:'Liaison BMS',
+  ee_bms_note:'※ BMS : SOC·SOH·temp cellule via OCPP 2.0.1 / ISO 15118.',
+  ee_pay_title:'Gestion des paiements EV',ee_pay_member:'Membre(₩/kWh)',ee_pay_guest:'Invité(₩/kWh)',btn_apply:'Appliquer',
+  ee_pay_note:'※ Version complète : PG (carte), QR, règlement itinérance.',
+  ee_ai_title:'Optimisation énergétique IA (version complète) :',ee_ai_desc:'Décharge ESS aux heures SMP élevées, arrêt immédiat ESS·EV en cas de risque incendie, écrêtage, enchères V2G.'},
+ de:{nav_overview:'Leitstand',nav_pv:'Erzeugung',nav_site:'Standort',nav_essev:'ESS·EV',nav_ai:'KI-Prognose',nav_alarm:'Alarme',nav_report:'Berichte',nav_customer:'Kunden',nav_acct:'Konten·Kunden',nav_admin:'Einstellungen',nav_logout:'Abmelden',login_btn:'Anmelden',set_lang:'Sprache / Einstellungen',set_language:'Sprache',set_reset:'Zurücksetzen',
+  vpp_title:'VPP-Erzeugungsprognose für morgen — auf Basis KMA-Kurzfristprognose',vpp_note:'※ Referenz für VPP-Gebote. Demo nutzt integrierte Simulation; Vollversion KMA-API + Anlagen-Lernkorrektur. Empfohlenes Gebot = 90 % der Prognose (P90).',
+  pv_tab_main:'Haupt',pv_tab_stat:'Statistik',pv_tab_inv:'Wechselrichter-Analyse',pv_tab_sites:'Leistung je Standort',
+  pvs_out_title:'Echtzeit-Leistung je Standort',pvs_table_title:'Leistung · Energie · Erlöse je Standort (alle Anlagen)',pvs_int_title:'Integrierte Überwachung — aggregiert je Betreiberkonto',pvs_int_desc:'Aggregiert alle Anlagen von Mehranlagen-Konten in Echtzeit.',
+  th_site:'Standort',th_cap:'Leistung(kW)',th_curout:'Ausgang(kW)',th_genrate:'Rate(%)',th_today_e:'Energie heute(kWh)',th_today_h:'Stunden heute(h)',th_today_rev:'Erlös heute(₩)',th_status:'Status',th_owner:'Betreiber(Konto)',th_sitecnt:'Anlagen',th_alarm:'Alarme',
+  site_title:'Standortdetail',site_tripall:'Alles trennen / Stopp',site_str_note:'※ <b>Manuelle Fernsteuerung</b> (keine Automatik). String-Kanäle werden aus eingehenden Signalen automatisch angelegt (12·18·24 usw.), einzeln trenn- und zuschaltbar.',
+  th_volt:'Spannung(V)',th_amp:'Strom(A)',th_kw:'Leistung(kW)',th_temp:'Temp(°C)',th_ins:'Isolation(MΩ)',th_remote:'Fernaktion',
+  as_title:'Service · Wartung (diese Anlage)',as_add:'Neuer Auftrag',th_date:'Datum',th_type:'Art',th_desc:'Beschreibung',th_mgr:'Zuständig',th_action:'Aktion',
+  ee_title:'ESS · EV Lade-Leitstand',ee_sched_title:'ESS-Fahrplan:',ee_sched_desc:'Laden 10:00–15:00 (PV-Spitze) · Entladen 15:00–10:00 Folgetag (SMP-Abrechnung). Automatik; manuell gilt temporär.',
+  ee_ess_title:'ESS Status·Steuerung (SOC·SOH·PCS·Zelltemp)',ee_essrev_title:'ESS-Entladeerlöse (15–10 Uhr × SMP)',
+  th_disch_today:'Entladung heute(kWh)',th_disch_rev:'Erlös heute(₩)',th_disch_month:'Monatserlös(₩)',th_cycles:'Zyklen',
+  ee_essrev_note:'※ Erlös = entladene kWh × SMP. REC-Gewichtung unter Konten > Abrechnungseinstellungen.',
+  ee_ev_title:'EV-Ladestationen — Status·Steuerung',th_charger:'Ladestation',th_session:'Sitzung(kWh)',
+  ee_evom_title:'EV-O&M — Lade-/Entladezyklen · Kapazität · Zahlung · BMS',th_chg_cnt:'Ladungen',th_v2g_cnt:'Entladungen(V2G)',th_cum_kwh:'Gesamt geladen(kWh)',th_cum_v2g:'Gesamt entladen(kWh)',th_pay_today:'Zahlung heute(₩)',th_bms:'BMS-Verbindung',
+  ee_bms_note:'※ BMS: SOC·SOH·Zelltemperatur über OCPP 2.0.1 / ISO 15118.',
+  ee_pay_title:'EV-Zahlungsverwaltung',ee_pay_member:'Mitglied(₩/kWh)',ee_pay_guest:'Gast(₩/kWh)',btn_apply:'Anwenden',
+  ee_pay_note:'※ Vollversion: Zahlungs-Gateway, QR-Auth, Roaming-Abrechnung.',
+  ee_ai_title:'KI-Energieoptimierung (Vollversion):',ee_ai_desc:'ESS-Entladung bei hohem SMP, Sofortstopp von ESS·EV bei Brandrisiko, Peak-Cut, V2G-Gebote.'}
+};
+function setLang(lang){
+  const dict=I18N[lang]||I18N.ko;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); const v=dict[k]||I18N.ko[k]; if(v){ if(v.indexOf('<')>=0) el.innerHTML=v; else el.textContent=v; } });
+  document.documentElement.lang = lang;
+  try{ localStorage.setItem('sg_lang', lang); }catch(e){}
+  const ls=document.getElementById('langSel'); if(ls) ls.value=lang;
+}
+function resetSettings(){
+  if(!confirm('언어 및 환경설정을 기본값(한국어)으로 되돌리시겠습니까?')) return;
+  try{ localStorage.removeItem('sg_lang'); }catch(e){}
+  setLang('ko'); toast('기본값(한국어)으로 되돌렸습니다.','var(--green)');
+}
+(function initLang(){
+  const ls=document.getElementById('langSel');
+  if(ls){ ls.innerHTML=LANGS.map(l=>'<option value="'+l[0]+'">'+l[1]+'</option>').join('');
+    ls.onchange=()=>setLang(ls.value); }
+  let sv='ko'; try{ sv=localStorage.getItem('sg_lang')||'ko'; }catch(e){}
+  setLang(sv);
+})();
+
+</script>
+</body>
+</html>
