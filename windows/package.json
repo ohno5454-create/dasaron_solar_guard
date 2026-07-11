@@ -1,7 +1,7 @@
 {
   "name": "dasaron-solar-guard",
   "productName": "Dasaron Solar Guard",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "태양광·ESS·EV AI 통합 안전관제 (Windows 데스크톱 앱)",
   "main": "main.js",
   "author": "DASARON",

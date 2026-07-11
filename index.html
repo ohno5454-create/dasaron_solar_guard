@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <!-- 보안: CSP — 허용된 출처(CDN·카카오·OpenFreeMap) 외 스크립트·리소스 차단 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://dapi.kakao.com https://*.daumcdn.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: blob: https://*.daumcdn.net https://*.kakaocdn.net https://map.daumcdn.net https://tiles.openfreemap.org; connect-src 'self' blob: https://tiles.openfreemap.org https://dapi.kakao.com https://*.daumcdn.net https://cdnjs.cloudflare.com; worker-src 'self' blob:; font-src 'self' data: https://tiles.openfreemap.org; object-src 'none'; base-uri 'self'">
-<title>Dasaron Solar Guard v2.1 — 태양광·ESS·EV AI 통합 안전관제</title>
+<title>Dasaron Solar Guard v2.2 — 태양광·ESS·EV AI 통합 안전관제</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#eef2f7">
 <link rel="apple-touch-icon" href="./icon-192.png">
@@ -88,7 +88,7 @@ footer{padding:14px 16px;color:#5b6778;font-size:11px;border-top:1px solid var(-
 .mapdot.alert circle.core{animation:pulse 1s infinite;}
 #hoverTip{position:fixed;z-index:80;background:#1a2130;border:1px solid var(--orange);border-radius:10px;padding:10px 12px;font-size:12.5px;line-height:1.6;color:#e8ecf4;pointer-events:none;display:none;box-shadow:0 10px 30px rgba(0,0,0,.5);max-width:260px;}
 #hoverTip b{color:#fff;}
-@media print{header,nav,.btn,footer,#repToolbar,#hoverTip{display:none!important;} body{background:#fff;color:#000;} main{padding:0;} .card{border:1px solid #bbb;background:#fff;break-inside:avoid;box-shadow:none;} td,th{color:#000;} .tablewrap{overflow:visible!important;} table{font-size:10.5px;min-width:0!important;} #repDocHead{border:2px solid #333;} .aibox{border-left:4px solid #F98A0B;} @page{margin:12mm;}}
+@media print{header,nav,.btn,footer,#repToolbar,#hoverTip{display:none!important;} body{background:#fff;color:#000;} main{padding:0;} .card{border:1px solid #bbb;background:#fff;break-inside:avoid;box-shadow:none;} td,th{color:#000;} .tablewrap{overflow:visible!important;max-height:none!important;} table{font-size:10.5px;min-width:0!important;} #repDocHead{border:2px solid #333;} .aibox{border-left:4px solid #F98A0B;} @page{margin:12mm;}}
 @media (max-width:820px){
   .two,.two5,.three,#ovGrid3{grid-template-columns:1fr!important;}
   header{padding:8px 10px;gap:6px;}
@@ -102,7 +102,7 @@ footer{padding:14px 16px;color:#5b6778;font-size:11px;border-top:1px solid var(-
   .cards4{grid-template-columns:repeat(2,1fr);}
   .sitegrid{grid-template-columns:1fr;}
 }
-#mapStage{position:relative;width:100%;height:calc(100vh - 150px);min-height:520px;background:#dce7f0;border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+#mapStage{position:relative;width:100%;height:calc(100vh - 128px);min-height:560px;background:#dce7f0;border:1px solid var(--line);border-radius:12px;overflow:hidden;}
 #kakaoMap{position:absolute;inset:0;z-index:1;display:none;}
 #glMap{position:absolute;inset:0;z-index:1;display:none;}
 .glMarker{cursor:pointer;}
@@ -139,7 +139,7 @@ footer{padding:14px 16px;color:#5b6778;font-size:11px;border-top:1px solid var(-
       <div style="display:inline-block;width:46px;height:46px;border:7px solid var(--orange);border-radius:50%;margin-bottom:8px;"></div>
       <div class="logo" style="font-size:24px;">DASAR<span class="o">O</span>N</div>
       <div style="color:var(--orange);font-weight:700;font-size:15px;margin-top:2px;">Solar Guard</div>
-      <div style="font-size:12px;color:var(--sub);margin-top:4px;">태양광·ESS·EV AI 통합 안전관제 v2.1</div>
+      <div style="font-size:12px;color:var(--sub);margin-top:4px;">태양광·ESS·EV AI 통합 안전관제 v2.2</div>
     </div>
     <input type="text" id="liId" placeholder="아이디" autocomplete="off">
     <input type="password" id="liPw" placeholder="비밀번호">
@@ -155,7 +155,7 @@ footer{padding:14px 16px;color:#5b6778;font-size:11px;border-top:1px solid var(-
 
 <header>
   <div class="logo" onclick="gotoView('overview')" style="cursor:pointer" title="통합관제로 이동">DASAR<span class="o">O</span>N <span style="font-weight:700;color:var(--orange);font-size:13px;">Solar Guard</span></div>
-  <div class="tag">v2.1</div>
+  <div class="tag">v2.2</div>
   <span class="tag" id="whoami" style="color:var(--orange);border-color:var(--orange)"></span>
   <div id="clock"></div>
   <nav>
@@ -236,7 +236,11 @@ footer{padding:14px 16px;color:#5b6778;font-size:11px;border-top:1px solid var(-
     <button class="btn btn-ghost pvtab" data-t="sites" data-i18n="pv_tab_sites">사이트별 출력</button>
   </div>
   <div id="pv-main">
-    <div class="card" id="pvSumCard" style="margin-bottom:12px;"><h3>보유 발전소 전체 합계</h3><div class="grid cards4" id="pvSum"></div></div>
+    <div class="card" id="pvSumCard" style="margin-bottom:12px;">
+      <h3>보유 발전소 전체 합계 <span class="small" style="font-weight:400">— 발전소를 클릭하면 사이트 상세로 이동합니다</span></h3>
+      <div class="grid cards4" id="pvSum"></div>
+      <div id="pvPlantList" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;"></div>
+    </div>
     <div class="grid two5">
       <div class="card" id="gaugeCard">
         <h3>발전률 (현재출력 / 설비용량) — 마우스를 올리면 상세정보</h3>
@@ -247,14 +251,12 @@ footer{padding:14px 16px;color:#5b6778;font-size:11px;border-top:1px solid var(-
       <div class="card"><h3>발전 현황</h3><div class="tablewrap"><table style="min-width:0"><tbody id="pvKpi"></tbody></table></div></div>
     </div>
     <div class="card" style="margin-top:12px;">
-      <h3>수익 현황 (SMP + REC) — 일별 수익이 저장·누적되며 입력 단가는 유지됩니다</h3>
+      <h3>수익 현황 (SMP + REC)</h3>
       <div class="row" style="flex-wrap:wrap;margin-bottom:12px;">
-        <span class="small" style="margin-top:0">SMP(원/kWh)</span><input type="number" id="inSmp" value="114.96" step="0.01" style="width:95px">
-        <span class="small" style="margin-top:0">REC(원/REC)</span><input type="number" id="inRec" value="71945" step="1" style="width:105px">
+        <span class="small" style="margin-top:0">SMP(원/kWh)</span><input type="number" id="inSmp" value="114.96" style="width:95px;opacity:.6" disabled>
+        <span class="small" style="margin-top:0">REC(원/REC)</span><input type="number" id="inRec" value="71945" style="width:105px;opacity:.6" disabled>
         <span class="small" style="margin-top:0">가중치</span>
-        <input type="number" id="inW" value="1.5" style="width:75px;opacity:.6" disabled title="REC 가중치는 계정관리 > 수익 정산 설정에서만 수정할 수 있습니다">
-        <button class="btn btn-blue" id="btnRev">적용</button>
-        <span class="small" style="margin-top:0;color:var(--orange)">※ 가중치 수정은 계정관리 &gt; 수익 정산 설정에서만 가능합니다 (여기서는 표시 전용)</span>
+        <input type="number" id="inW" value="1.5" style="width:75px;opacity:.6" disabled>
       </div>
       <div class="grid cards4" id="revCards"></div>
       <div class="small" style="margin-top:10px;">기본값: 전력거래소(KPX) 2026.6 육지 월평균 SMP 114.96원 · REC 현물 71,945원 (정식판: KPX 공공데이터 자동 연동, 일별 단가로 정산)</div>
@@ -342,8 +344,11 @@ footer{padding:14px 16px;color:#5b6778;font-size:11px;border-top:1px solid var(-
   <div class="small" id="siteAc" style="margin-bottom:6px;color:var(--sub)"></div>
   <div class="small" style="margin-bottom:10px;color:var(--sub)">※ 그래프 위 마우스: 상세정보 창 · 휠 스크롤: 확대/축소</div>
   <div class="grid two5">
-    <div class="card"><h3 id="hCur">전류 (A)</h3><canvas id="chCurrent"></canvas></div>
-    <div class="card"><h3>전압 (V)</h3><canvas id="chVolt"></canvas></div>
+    <div class="card">
+      <div class="row" style="margin-bottom:4px;"><h3 id="hCur" style="margin:0;">스트링 채널 전류 (A)</h3><div class="spacer"></div>
+        <span class="small" style="margin-top:0">인버터 선택</span><select id="chartInvSel" onchange="selInv(+this.value)" style="padding:4px 8px;font-size:12px;"></select></div>
+      <canvas id="chCurrent"></canvas></div>
+    <div class="card"><h3 id="hVolt">스트링 채널 전압 (V)</h3><canvas id="chVolt"></canvas></div>
     <div class="card"><h3>출력 전력 (kW)</h3><canvas id="chPow"></canvas></div>
     <div class="card"><h3>내부온도 (°C) / 아크 이벤트</h3><canvas id="chTemp"></canvas></div>
   </div>
@@ -457,6 +462,7 @@ KEPCO) 정산 연계.</div>
       <label class="ck"><input type="checkbox" id="ckKakao" checked> 카카오톡</label>
       <label class="ck"><input type="checkbox" id="ckCall" checked> 전화(ARS)</label>
       <label class="ck"><input type="checkbox" id="ckVoice" checked> 관제 음성(TTS)</label>
+      <label class="ck"><input type="checkbox" id="ckPush" checked> 웹 통보(문자형 푸시)</label>
       <span class="small" style="margin-top:0">자동차단</span><input type="number" id="inAuto" value="85" min="50" max="99" style="width:65px">
       <span class="small" style="margin-top:0">자동복구</span><input type="number" id="inRestoreAt" value="75" min="10" max="84" style="width:65px">
       <label class="ck"><input type="checkbox" id="ckRestore" checked> 자동복구 사용</label>
@@ -469,6 +475,7 @@ KEPCO) 정산 연계.</div>
       <label class="ck"><input type="checkbox" id="mySms"> 문자(SMS)</label>
       <label class="ck"><input type="checkbox" id="myKakao"> 카카오톡</label>
       <label class="ck"><input type="checkbox" id="myCall"> 전화(ARS)</label>
+      <label class="ck"><input type="checkbox" id="myPush"> 웹 통보(문자형 푸시)</label>
       <button class="btn btn-blue" onclick="saveMyCh()">저장</button>
     </div>
   </div>
@@ -536,8 +543,8 @@ KEPCO) 정산 연계.</div>
     <div class="tablewrap"><table id="repTable"><thead><tr><th>사이트</th><th>용량(kW)</th><th>발전량(kWh)</th><th>이용률(%)</th><th>PR(%)</th><th>CO₂(kg)</th><th>수익(원)</th><th>경보</th><th>가동률(%)</th></tr></thead><tbody></tbody></table></div>
   </div>
 
-  <div class="card" style="margin-top:12px;"><h3>주요 이벤트 · 조치 내역 (간추림)</h3>
-    <div class="tablewrap"><table id="repEvents"><thead><tr><th>시각</th><th>사이트</th><th>등급</th><th>내용</th><th>위험도</th><th>조치/결과</th></tr></thead><tbody></tbody></table></div>
+  <div class="card" style="margin-top:12px;"><h3>이벤트 · 조치 내역 (누적 경보이력 전체)</h3>
+    <div class="tablewrap" style="max-height:480px;overflow:auto"><table id="repEvents"><thead><tr><th>시각</th><th>사이트</th><th>등급</th><th>내용</th><th>위험도</th><th>조치/결과</th></tr></thead><tbody></tbody></table></div>
   </div>
 </section>
 
@@ -689,13 +696,14 @@ KEPCO) 정산 연계.</div>
         <tr><td>문자·알림톡·ARS 발송사 API</td><td style="text-align:right"><span class="badge b-info">정식판</span></td></tr>
         <tr><td>기상청 동네예보 API (지역 기상정보)</td><td style="text-align:right"><span class="badge b-ok">연동</span></td></tr>
         <tr><td>현장 기상센서 (일사량계·모듈온도·외기온·풍속)</td><td style="text-align:right"><span class="badge b-ok">연동</span></td></tr>
+        <tr><td>RTU 저장메모리 (72h 스토어&amp;포워드 — 통신 두절 시 로컬 기록, 재연결 시 이어서 동기화)</td><td style="text-align:right"><span class="badge b-ok">동작</span></td></tr>
       </tbody></table></div>
     </div>
   </div>
 </section>
 </main>
 <div class="toast" id="toast"></div>
-<footer>Dasaron Solar Guard v2.1 — 내장 시뮬레이터 데모. RTU·인버터 실연동, DB, AI 학습모델, 발송 API, KPX·REMS·OCPP 연동은 정식 개발 범위. © 2026 DASARON</footer>
+<footer>Dasaron Solar Guard v2.2 — 내장 시뮬레이터 데모. RTU·인버터 실연동, DB, AI 학습모델, 발송 API, KPX·REMS·OCPP 연동은 정식 개발 범위. © 2026 DASARON</footer>
 
 <script>
 // ===== 오프라인 폴백: CDN(Chart.js) 로드 실패 시에도 앱이 동작하도록 무해한 스텁 제공 =====
@@ -762,7 +770,13 @@ function initSiteSim(s){
   s.invYearly = [2021,2022,2023,2024,2025].map(y=> Array.from({length:s.invN},()=> (new Date(s.cod).getFullYear()<=y) ? Math.round(s.cap/s.invN*3.8*365*(0.9+Math.random()*0.2)) : 0));
   return s;
 }
-const S = SITES.map(s=>initSiteSim({...s}));
+// ===== 발전소 영속화: 신규 등록 발전소·정보 수정이 재로그인 후에도 유지 =====
+const BASE_N = SITES.length;
+let SITE_OVR = {}; try{ SITE_OVR=JSON.parse(localStorage.getItem('sg_siteovr')||'{}'); }catch(e){}
+const S = SITES.map(s=>{ const o=SITE_OVR[s.id]||{}; return initSiteSim({...s, ...o}); });
+function plantCfg(s){ return {name:s.name,cap:s.cap,boxes:s.boxes,base:s.base,deg:false,t:s.t,mx:s.mx,my:s.my,lat:s.lat,lng:s.lng,cod:s.cod,invN:s.invN,comm:s.comm,region:s.region,addr:s.addr||'',group:s.group}; }
+function savePlants(){ try{ localStorage.setItem('sg_plants', JSON.stringify(S.slice(BASE_N).map(plantCfg))); }catch(e){} }
+try{ JSON.parse(localStorage.getItem('sg_plants')||'[]').forEach(p=>{ p.id=S.length; S.push(initSiteSim(p)); }); }catch(e){}
 function invOf(s,i){ for(let k=s.invN-1;k>=0;k--){ if(i>=s.invOff[k]) return k; } return 0; }
 function chIdx(s,i){ return i - s.invOff[invOf(s,i)]; }
 function chName(s,i){ return 'INV'+(invOf(s,i)+1)+'-ST'+String(chIdx(s,i)+1).padStart(2,'0'); }
@@ -841,6 +855,7 @@ function loginOk(a){
   secLog('로그인 성공: '+a.id+' ('+(a.role==='admin'?'관리자':'발전주')+')');
   armIdle();
   applyRole(); render();
+  setTimeout(()=>{ if(typeof kakaoRelayout==='function') kakaoRelayout(); if(glMapObj){ try{ glMapObj.resize(); }catch(e){} } }, 200);
 }
 async function doLogin(){
   if(Date.now()<lockUntil){ alert('보안: 로그인 시도가 잠겨 있습니다. '+Math.ceil((lockUntil-Date.now())/1000)+'초 후 다시 시도하세요.'); return; }
@@ -911,13 +926,27 @@ function applyRole(){
     document.getElementById('mySms').checked=!!CUR.chn.sms;
     document.getElementById('myKakao').checked=!!CUR.chn.kakao;
     document.getElementById('myCall').checked=!!CUR.chn.call;
+    document.getElementById('myPush').checked=!!CUR.chn.push;
   }
   if(isAdmin()) renderAcct();
 }
 function saveMyCh(){
-  CUR.chn={sms:document.getElementById('mySms').checked, kakao:document.getElementById('myKakao').checked, call:document.getElementById('myCall').checked};
+  CUR.chn={sms:document.getElementById('mySms').checked, kakao:document.getElementById('myKakao').checked, call:document.getElementById('myCall').checked, push:document.getElementById('myPush').checked};
+  if(CUR.chn.push) askPushPermission();
   saveAcc(); toast('알림 채널 설정이 저장되었습니다.','var(--green)');
 }
+// ===== 웹 통보(문자형 푸시) — 브라우저 알림 API =====
+function askPushPermission(){
+  try{ if(window.Notification && Notification.permission==='default') Notification.requestPermission(); }catch(e){}
+}
+function webPush(site, msg){
+  try{
+    if(!window.Notification || Notification.permission!=='granted') return;
+    new Notification('Dasaron Solar Guard — '+site, {body:msg, icon:'./icon-192.png', tag:'dsg-'+site});
+  }catch(e){}
+}
+var _ckp=document.getElementById('ckPush'); if(_ckp) _ckp.addEventListener('change', ()=>{ if(_ckp.checked) askPushPermission(); });
+var _myp=document.getElementById('myPush'); if(_myp) _myp.addEventListener('change', ()=>{ if(_myp.checked) askPushPermission(); });
 function rebuildSelectors(){
   const ms=mySites();
   pvSel.innerHTML=''; siteSel.innerHTML='';
@@ -1048,7 +1077,7 @@ async function addPlant(){
   const ns={ id:S.length, name, cap, boxes:Math.max(2,Math.round(cap/40)), base:0.70, deg:false, t,
     mx:234+111.55*(ln-126.978), my:205-138.25*(la-37.5665), lat:la, lng:ln, cod,
     invN, comm, region:regionFromAddr(addr||name), addr };
-  initSiteSim(ns); S.push(ns);
+  initSiteSim(ns); S.push(ns); savePlants();   // 영속 저장 — 재로그인해도 유지
   // 사이트 체크박스 목록 재구성
   const box=document.getElementById('acSites'); if(box){ box.dataset.built=''; box.innerHTML=''; }
   rebuildSelectors();
@@ -1100,7 +1129,28 @@ function fcFleet(list){
 
 function sitePower(s){ return s.tripped?0:s.strings.reduce((a,b,i)=>a+((b.iso||s.invTrip[invOf(s,i)])?0:b.v*b.a),0)/1000*s.kf; }
 function pushRisk(s){ s.riskHist.push(s.risk); if(s.riskHist.length>60) s.riskHist.shift(); }
-function addAlarm(s,grade,msg,cls){ alarms.unshift({time:new Date().toLocaleTimeString('ko-KR'),site:s.name,grade,msg,risk:s.risk.toFixed(0),ack:false,cls,siteId:s.id}); }
+function addAlarm(s,grade,msg,cls,loc){ alarms.unshift({time:new Date().toLocaleTimeString('ko-KR'),site:s.name,grade,msg,risk:s.risk.toFixed(0),ack:false,cls,siteId:s.id, inv:loc?loc.inv:null, ch:loc?loc.ch:null}); }
+// 경보가 발생한 스트링 위치(인버터·채널) 산출
+function badLoc(s){ const bi=s.strings.findIndex(x=>x.bad&&!x.iso); return bi>=0?{inv:invOf(s,bi),ch:chIdx(s,bi)}:null; }
+// 경고 이력 클릭 → 사이트 상세의 해당 인버터·스트링 채널 강조 표시로 이동
+function goSiteCh(sid,inv,ch){
+  curSite=sid; siteSel.value=sid;
+  if(inv!=null){ curInv=inv; window._hlCh={site:sid,inv,ch,until:Date.now()+8000}; }
+  hideTip(); gotoView('site'); render(); renderAS();
+  const tbl=document.getElementById('strTable');
+  if(tbl && tbl.scrollIntoView) setTimeout(()=>tbl.scrollIntoView({behavior:'smooth',block:'center'}),100);
+}
+// 경보 이력에서 해당 채널 즉시 격리/재투입 (격리 시 해당 경보는 '확인' 처리)
+function alarmIsoCh(sid,inv,ch){
+  const s=S[sid]; if(!s || inv>=s.invN || ch>=s.invCh[inv]) return;
+  isoStr(sid, s.invOff[inv]+ch);
+  alarms.forEach(a=>{ if(a.siteId===sid && a.inv===inv && a.ch===ch && !a.ack) a.ack=true; });
+  render();
+}
+function alarmReCh(sid,inv,ch){
+  const s=S[sid]; if(!s || inv>=s.invN || ch>=s.invCh[inv]) return;
+  reStr(sid, s.invOff[inv]+ch);
+}
 function toast(m,color){ const el=document.getElementById('toast'); el.textContent=m; el.style.background=color||'var(--red)'; el.style.display='block'; setTimeout(()=>el.style.display='none',6000); }
 
 // ================= 호버 툴팁 =================
@@ -1139,14 +1189,18 @@ function sendNoti(s, msg, opts={}){
   const oper = document.getElementById('inOp').value || '미등록';
   const safe = (own && own.safe && own.safe!=='-') ? own.safe : (document.getElementById('inSafe').value || '미등록');
   const phone = '발전주 ' + owner + ' / 운영자 ' + oper + ' / 안전관리자 ' + safe;
-  const chn = own ? own.chn : {sms:document.getElementById('ckSms').checked, kakao:document.getElementById('ckKakao').checked, call:document.getElementById('ckCall').checked};
+  const chn = own ? own.chn : {sms:document.getElementById('ckSms').checked, kakao:document.getElementById('ckKakao').checked, call:document.getElementById('ckCall').checked, push:document.getElementById('ckPush')&&document.getElementById('ckPush').checked};
   const ch = ['웹 경보'];
   if(chn.sms) ch.push('SMS');
   if(chn.kakao) ch.push('카카오톡');
   if(chn.call) ch.push('전화(ARS)');
+  if(chn.push) ch.push('웹통보(푸시)');
   notis.unshift({time:new Date().toLocaleTimeString('ko-KR'), site:s.name, siteId:s.id, phone, ch:ch.join('·'), msg, st:'발송완료'});
   if(notis.length>80) notis.pop();
-  if(mySites().includes(s.id)) toast(`📣 [${s.name}] ${msg}`, opts.color);
+  if(mySites().includes(s.id)){
+    toast(`📣 [${s.name}] ${msg}`, opts.color);
+    if(chn.push) webPush(s.name, msg);   // 웹 통보(문자형 푸시) — 브라우저 알림
+  }
   if(opts.voice && mySites().includes(s.id)) speak(opts.voice);
 }
 function badList(s){
@@ -1224,13 +1278,14 @@ function tick(){
     pushRisk(s);
     if(s.risk>45 && !s.warned){
       s.warned=true;
-      addAlarm(s,"주의","AI 예지: 절연 열화 추세 감지 — 점검 권고","warn");
+      const loc1=badLoc(s);
+      addAlarm(s,"주의","AI 예지: 절연 열화 추세 감지 — 점검 권고"+(loc1?` (INV${loc1.inv+1}-ST${String(loc1.ch+1).padStart(2,'0')})`:''),"warn",loc1);
       sendNoti(s, "주의 경보: 절연 열화 추세 감지. 점검을 권고합니다.", {color:'var(--amber)'});
     }
     if(s.risk>70 && !s.danger){
       s.danger=true;
       const bl = badList(s).join(', ') || '식별 중';
-      addAlarm(s,"위험","AI 예지: 아크 패턴·과열 복합 위험 — 차단 검토 요망","danger");
+      addAlarm(s,"위험",`AI 예지: 아크 패턴·과열 복합 위험 — 차단 검토 요망 (${bl})`,"danger",badLoc(s));
       sendNoti(s, `위험 경보: 화재 위험 예측 (위험도 ${s.risk.toFixed(0)}점). 원인 ${bl}.`, {
         voice:`다사론 솔라가드 자동 경보입니다. ${s.name}에서 화재 위험이 감지되었습니다. 위험도 ${s.risk.toFixed(0)}점. 원인은 ${bl}입니다. ${thr}점 도달 시 자동 차단됩니다.`});
     }
@@ -1265,8 +1320,44 @@ function tick(){
     v.payToday += dkwh * (v.member ? EV_PRICE.member : EV_PRICE.guest);
     if(v.ses>60){ v.st='완료'; v.kw=0; v.chgCnt++; }
   } });
+  // RTU 저장메모리(스토어&포워드): 30초마다 누적 데이터 로컬 저장 → 통신 두절·재접속 시 이어서 복원
+  if(t===3 || t%15===0) saveRTU();
   render();
 }
+window.addEventListener('beforeunload', ()=>{ try{ saveRTU(); }catch(e){} });
+// ===== RTU 저장메모리 (72h 스토어&포워드) =====
+// 인터넷이 끊겨도 RTU가 로컬 메모리에 누적 기록하고, 재연결 시 끊긴 시점부터 이어서 반영
+function saveRTU(){
+  try{
+    localStorage.setItem('sg_rtu', JSON.stringify({
+      ts: Date.now(),
+      s: S.map(x=>({id:x.id, e:+x.energyToday.toFixed(1), cum:Math.round(x.cum)})),
+      ess: ESS.map(e=>({id:e.id, soc:+e.soc.toFixed(1), dt:+e.dischToday.toFixed(1), dm:+e.dischMonth.toFixed(1)}))
+    }));
+  }catch(e){}
+}
+function restoreRTU(){
+  try{
+    const r=JSON.parse(localStorage.getItem('sg_rtu')||'null'); if(!r||!r.ts) return;
+    const gapMin=(Date.now()-r.ts)/60000;
+    (r.s||[]).forEach(o=>{ const s=S[o.id]; if(!s) return; if(o.e>s.energyToday) s.energyToday=o.e; if(o.cum>s.cum) s.cum=o.cum; });
+    (r.ess||[]).forEach(o=>{ const e=ESS.find(x=>x.id===o.id); if(!e) return; e.soc=o.soc; e.dischToday=o.dt; e.dischMonth=o.dm; });
+    if(gapMin>1){
+      // 결측(통신 공백) 구간 백필 — 주간 시간대만 발전량 추정 가산 (최대 12시간)
+      const hh=new Date().getHours();
+      if(hh>=7 && hh<=18){
+        S.forEach(s=>{ const add=s.cap*0.5*Math.min(gapMin,720)/60; s.energyToday+=add; s.cum+=add; });
+      }
+      setTimeout(()=>{
+        toast('RTU 저장메모리 동기화: 통신 공백 '+Math.round(gapMin)+'분 구간의 누적 데이터를 회수했습니다.','var(--blue)');
+        try{ secLog('RTU 버퍼 동기화 — 공백 '+Math.round(gapMin)+'분 데이터 회수'); }catch(e){}
+      }, 1500);
+    }
+  }catch(e){}
+}
+setTimeout(restoreRTU, 300);
+window.addEventListener('offline', ()=>{ toast('⚠ 인터넷 연결 끊김 — RTU 저장메모리 로컬 기록 모드 (재연결 시 자동 동기화)','var(--amber)'); try{ secLog('통신 끊김 — RTU 스토어&포워드 모드 진입'); }catch(e){} });
+window.addEventListener('online', ()=>{ saveRTU(); toast('인터넷 재연결 — RTU 버퍼 누적 데이터 동기화 완료','var(--green)'); try{ secLog('통신 재연결 — RTU 버퍼 동기화 완료'); }catch(e){} });
 
 // ================= 화면 전환 =================
 document.querySelectorAll('nav button[data-v]').forEach(b=>b.onclick=()=>{
@@ -1277,6 +1368,7 @@ document.querySelectorAll('nav button[data-v]').forEach(b=>b.onclick=()=>{
   if(b.dataset.v==='acct'){ renderAcct(); syncAcctPrice(); renderCustomer(); }
   if(b.dataset.v==='site') renderAS();
   if(b.dataset.v==='admin'){ renderSecLog(); const isel=document.getElementById('idleSel'); if(isel) isel.value=String(idleMin); }
+  if(b.dataset.v==='overview') setTimeout(()=>{ if(typeof kakaoRelayout==='function') kakaoRelayout(); if(glMapObj){ try{ glMapObj.resize(); }catch(e){} } }, 60);
 });
 function riskColor(r){ return r>70?'var(--red)':r>45?'var(--amber)':'var(--green)'; }
 function riskBadge(r){ return r>70?['위험','b-danger']:r>45?['주의','b-warn']:['정상','b-ok']; }
@@ -1322,7 +1414,7 @@ function isoStr(siteId, idx){
   const s=S[siteId], st=s.strings[idx];
   const nm=chName(s,idx);
   st.iso=true; st.bad=false; prevented++;
-  addAlarm(s,"조치",`${nm} 스트링 채널 원격 격리(개별 차단)`,"warn");
+  addAlarm(s,"조치",`${nm} 스트링 채널 원격 격리(개별 차단)`,"warn",{inv:invOf(s,idx),ch:chIdx(s,idx)});
   sendNoti(s, `${nm} 스트링 채널 원격 격리 조치 완료.`, {color:'var(--green)', voice:`인버터 ${invOf(s,idx)+1}번 ${chIdx(s,idx)+1}번 스트링 격리 완료.`});
   render();
 }
@@ -1404,7 +1496,15 @@ function initKakaoMap(){
     ov.setMap(kakaoMapObj); kakaoOverlays[s.id]={ov,el};
   });
   updateKakaoOverlays();
+  // 컨테이너 크기 확정 후 재배치 — 위성 타일과 라벨 레이어 어긋남 방지
+  setTimeout(kakaoRelayout, 300); setTimeout(kakaoRelayout, 1500);
 }
+// 카카오맵 relayout: 창 크기 변경·화면 전환·로그인 직후 레이어(위성/라벨) 정렬을 다시 맞춤
+function kakaoRelayout(){
+  if(!kakaoMapObj) return;
+  try{ const cen=kakaoMapObj.getCenter(); kakaoMapObj.relayout(); kakaoMapObj.setCenter(cen); }catch(e){}
+}
+window.addEventListener('resize', ()=>{ kakaoRelayout(); if(glMapObj){ try{ glMapObj.resize(); }catch(e){} } });
 function updateKakaoOverlays(){
   const ms=mySites(), alertIds=window._alertIds||[];
   Object.keys(kakaoOverlays).forEach(id=>{
@@ -1563,6 +1663,24 @@ function daySeries(s){
   }
   s._day={t,cur,volt,pow,temp}; return s._day;
 }
+// 인버터별 스트링 채널 전류·전압 일간 시계열 (채널 수만큼 시리즈 생성)
+function daySeriesInv(s,k){
+  s._dayInv = s._dayInv||{};
+  if(s._dayInv[k] && s._dayInv[k].ch===s.invCh[k]) return s._dayInv[k];
+  const N=96, ch=s.invCh[k], t=[], cur=[], volt=[];
+  for(let i=0;i<N;i++){
+    const hh=Math.floor(i/4),mm=(i%4)*15;
+    t.push(String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0'));
+    const hf=i/4, f=Math.max(0,Math.sin((hf-5.5)/13*Math.PI));
+    const rowA=[], rowV=[];
+    for(let c=0;c<ch;c++){ const r=rand01(i*7+s.id*131+k*37+c*11);
+      rowA.push(+((8.3+r*1.8)*f).toFixed(2));
+      rowV.push(f>0 ? 612+Math.round(r*33) : 0);
+    }
+    cur.push(rowA); volt.push(rowV);
+  }
+  s._dayInv[k]={t,cur,volt,ch}; return s._dayInv[k];
+}
 function render(){
   document.getElementById('clock').textContent = new Date().toLocaleString('ko-KR');
   const MS = myS(), ms = mySites();
@@ -1631,7 +1749,6 @@ function render(){
   document.getElementById('siteType').textContent = s.t==='inv' ? '스트링 인버터형 (인버터 로우데이터)' : '접속반형 (RS-485)';
   document.getElementById('siteCap').textContent = '설비용량 '+s.cap.toLocaleString()+' kW';
   document.getElementById('siteAc').innerHTML = `설비용량 <b>${s.cap.toLocaleString()} kW</b> · 인버터 <b>${s.invN}대</b> (스트링 ${s.invCh.join('·')}채널 — 신호 자동감지) · 모델 <b>${s.model}</b> · 패키지 ${s.pkg}대 · 통신 ${s.comm} · ${s.region} &nbsp;|&nbsp; AC ${s.ac.v.toFixed(1)}V·${s.ac.hz.toFixed(2)}Hz·PF ${s.ac.pf.toFixed(3)} &nbsp;|&nbsp; 🌤 일사량 ${s.wx.irr} W/㎡ · 모듈온도 ${s.wx.modT.toFixed(1)}℃ · 외기 ${s.wx.ambT.toFixed(1)}℃ · 풍속 ${s.wx.wind.toFixed(1)}m/s`;
-  document.getElementById('hCur').textContent = '스트링 채널 전류 (A)';
   if(curInv>=s.invN) curInv=0;
   document.getElementById('hStr').textContent = `인버터 · 스트링 채널 현황 — 인버터 ${s.invN}대 (채널 ${s.invCh.join('·')} — 수신 신호 자동생성, 수동 원격 제어)`;
   // 인버터 탭
@@ -1660,16 +1777,24 @@ function render(){
     else if(s.tripped){ stat='<span class="badge b-warn">차단</span>'; act2='-'; }
     else { stat='<span class="badge b-ok">정상</span>'; act2=`<button class="btn btn-ghost" style="padding:4px 10px" onclick="isoStr(${s.id},${i})">격리</button>`; }
     const off = st.iso||s.tripped||invStopped;
-    tb.innerHTML+=`<tr${st.bad&&!invStopped?' class="alarm-red"':''}><td><b>ST-${String(ci+1).padStart(2,'0')}</b> <span class="small" style="margin:0">(INV${curInv+1})</span></td><td>${st.v.toFixed(0)}</td><td>${off?'0.00':st.a.toFixed(2)}</td><td>${off?'0.00':(st.v*st.a/1000).toFixed(2)}</td><td>${st.t.toFixed(1)}</td><td>${st.ins.toFixed(1)}</td><td>${stat}</td><td>${act2}</td></tr>`;
+    // 경고 이력에서 이동해 온 경우 해당 채널 강조 (8초간)
+    const hl = window._hlCh && window._hlCh.site===s.id && window._hlCh.inv===curInv && window._hlCh.ch===ci && Date.now()<window._hlCh.until;
+    tb.innerHTML+=`<tr${st.bad&&!invStopped?' class="alarm-red"':''}${hl?' style="outline:3px solid var(--orange);outline-offset:-2px;background:rgba(249,138,11,.12)"':''}><td><b>ST-${String(ci+1).padStart(2,'0')}</b> <span class="small" style="margin:0">(INV${curInv+1})</span>${hl?' <span class="badge b-org">⚠ 경보 채널</span>':''}</td><td>${st.v.toFixed(0)}</td><td>${off?'0.00':st.a.toFixed(2)}</td><td>${off?'0.00':(st.v*st.a/1000).toFixed(2)}</td><td>${st.t.toFixed(1)}</td><td>${st.ins.toFixed(1)}</td><td>${stat}</td><td>${act2}</td></tr>`;
   });
   if(chC){
     const D=daySeries(s), N=D.t.length;
     const wI=(key)=>{ let n=Math.min(N,Math.max(8,zoomLen[key]||N)); let st=Math.round(48-n/2); st=Math.max(0,Math.min(N-n,st)); return [st,st+n]; };
-    const colors3=['#3b82f6','#16a34a','#f59e0b'];
-    let W=wI('cur'); chC.data.labels=D.t.slice(W[0],W[1]);
-    chC.data.datasets=[0,1,2].map(k=>({label:'ST-0'+(k+1)+' (A)', data:D.cur.slice(W[0],W[1]).map(x=>x[k]), borderColor:colors3[k], borderWidth:1.5, pointRadius:0, tension:.3})); chC.update('none');
-    W=wI('volt'); chV.data.labels=D.t.slice(W[0],W[1]);
-    chV.data.datasets=[0,1,2].map(k=>({label:'ST-0'+(k+1)+' (V)', data:D.volt.slice(W[0],W[1]).map(x=>x[k]), borderColor:colors3[k], borderWidth:1.5, pointRadius:0, tension:.3})); chV.update('none');
+    // 선택 인버터의 전체 스트링 채널을 전류/전압 차트에 표시
+    const DI=daySeriesInv(s,curInv);
+    const chPal=['#3b82f6','#16a34a','#f59e0b','#ef4444','#a78bfa','#2dd4bf','#f472b6','#eab308','#0ea5e9','#fb923c','#65a30d','#c084fc','#14b8a6','#f43f5e','#84cc16','#6366f1','#f97316','#06b6d4','#d946ef','#22c55e','#facc15','#60a5fa','#e879f9','#34d399'];
+    document.getElementById('hCur').textContent = `인버터 ${curInv+1} 스트링 채널 전류 (A) — ${DI.ch}채널`;
+    const hv=document.getElementById('hVolt'); if(hv) hv.textContent = `인버터 ${curInv+1} 스트링 채널 전압 (V) — ${DI.ch}채널`;
+    const cis=document.getElementById('chartInvSel');
+    if(cis){ if(cis.options.length!==s.invN){ cis.innerHTML=Array.from({length:s.invN},(_,k)=>`<option value="${k}">인버터 ${k+1} (${s.invCh[k]}ch)</option>`).join(''); } cis.value=String(curInv); }
+    let W=wI('cur'); chC.data.labels=DI.t.slice(W[0],W[1]);
+    chC.data.datasets=Array.from({length:DI.ch},(_,k)=>({label:'ST-'+String(k+1).padStart(2,'0'), data:DI.cur.slice(W[0],W[1]).map(x=>x[k]), borderColor:chPal[k%24], borderWidth:1.2, pointRadius:0, tension:.3})); chC.update('none');
+    W=wI('volt'); chV.data.labels=DI.t.slice(W[0],W[1]);
+    chV.data.datasets=Array.from({length:DI.ch},(_,k)=>({label:'ST-'+String(k+1).padStart(2,'0'), data:DI.volt.slice(W[0],W[1]).map(x=>x[k]), borderColor:chPal[k%24], borderWidth:1.2, pointRadius:0, tension:.3})); chV.update('none');
     W=wI('pow'); chP.data.labels=D.t.slice(W[0],W[1]);
     chP.data.datasets=[{label:'사이트 출력 (kW)', data:D.pow.slice(W[0],W[1]), borderColor:'#F98A0B', backgroundColor:'rgba(249,138,11,.12)', fill:true, borderWidth:2, pointRadius:0, tension:.3}]; chP.update('none');
     W=wI('tmp'); chT.data.labels=D.t.slice(W[0],W[1]);
@@ -1696,7 +1821,9 @@ function render(){
   });
   const aat=document.querySelector('#aiAlarmTable tbody'); aat.innerHTML='';
   myAlarms.filter(a=>['주의','위험','자동차단'].includes(a.grade)).slice(0,40).forEach(a=>{
-    aat.innerHTML+=`<tr class="rowlink ${a.cls==='danger'?'alarm-red':''}" onclick="goReport(${a.siteId})"><td>${a.time}</td><td>${a.site}</td><td><span class="badge ${a.cls==='danger'?'b-danger':'b-warn'}">${a.grade}</span></td><td>${a.risk}</td><td>${a.msg}</td></tr>`;
+    const go = a.inv!=null ? `goSiteCh(${a.siteId},${a.inv},${a.ch})` : `goReport(${a.siteId})`;
+    const tt = a.inv!=null ? '클릭 → 사이트 상세의 해당 스트링 채널로 이동(강조 표시)' : '클릭 → 보고서로 이동';
+    aat.innerHTML+=`<tr class="rowlink ${a.cls==='danger'?'alarm-red':''}" title="${tt}" onclick="${go}"><td>${a.time}</td><td>${a.site}</td><td><span class="badge ${a.cls==='danger'?'b-danger':'b-warn'}">${a.grade}</span></td><td>${a.risk}</td><td>${a.msg}${a.inv!=null?' <span class="badge b-info" style="font-size:10px">INV'+(a.inv+1)+'-ST'+String(a.ch+1).padStart(2,'0')+' ▶</span>':''}</td></tr>`;
   });
   const w=[...MS].sort((a,b)=>b.risk-a.risk)[0];
   document.getElementById('aiExplain').innerHTML = w.risk>45 ?
@@ -1707,7 +1834,20 @@ function render(){
   const fNotis = myNotis.filter(n=> af==='all' || n.siteId===+af);
   const at=document.querySelector('#alarmTable tbody'); at.innerHTML='';
   fAlarms.slice(0,50).forEach(a=>{
-    at.innerHTML+=`<tr class="${a.cls==='danger'?'alarm-red':''}"><td>${a.time}</td><td>${a.site}</td><td><span class="badge ${a.cls==='danger'?'b-danger':'b-warn'}">${a.grade}</span></td><td>${a.msg}</td><td>${a.risk}</td><td>${a.ack?'확인':'<b style="color:var(--red)">미확인</b>'}</td><td>${a.ack?'-':`<button class="btn btn-ghost" style="padding:4px 10px" onclick="ackOne('${a.time}|${a.siteId}')">확인</button>`}</td></tr>`;
+    // 경보 채널 즉시 격리/재투입 (격리 시 해당 경보 자동 '확인' 처리)
+    let chBtn='';
+    if(a.inv!=null){
+      const s3=S[a.siteId];
+      if(s3 && a.inv<s3.invN && a.ch<s3.invCh[a.inv]){
+        const gi=s3.invOff[a.inv]+a.ch;
+        const nm='INV'+(a.inv+1)+'-ST'+String(a.ch+1).padStart(2,'0');
+        chBtn = s3.strings[gi].iso
+          ? ` <button class="btn btn-ghost" style="padding:4px 8px" onclick="alarmReCh(${a.siteId},${a.inv},${a.ch})">${nm} 재투입</button>`
+          : ` <button class="btn btn-red" style="padding:4px 8px" onclick="alarmIsoCh(${a.siteId},${a.inv},${a.ch})">${nm} 격리</button>`;
+      }
+    }
+    const ackBtn = a.ack?'':`<button class="btn btn-ghost" style="padding:4px 10px" onclick="ackOne('${a.time}|${a.siteId}')">확인</button>`;
+    at.innerHTML+=`<tr class="${a.cls==='danger'?'alarm-red':''}"><td>${a.time}</td><td>${a.site}</td><td><span class="badge ${a.cls==='danger'?'b-danger':'b-warn'}">${a.grade}</span></td><td>${a.msg}</td><td>${a.risk}</td><td>${a.ack?'확인':'<b style="color:var(--red)">미확인</b>'}</td><td style="white-space:nowrap">${ackBtn}${chBtn}${!ackBtn&&!chBtn?'-':''}</td></tr>`;
   });
   const nt=document.querySelector('#notiTable tbody'); nt.innerHTML='';
   fNotis.slice(0,30).forEach(n=>{
@@ -1768,7 +1908,7 @@ function render(){
     rt.innerHTML+='<tr><td>'+s2.name+'</td><td>'+s2.cap+'</td><td>'+Math.round(e).toLocaleString()+'</td><td>'+cf.toFixed(1)+'</td><td>'+pr.toFixed(1)+'</td><td>'+(e*0.4594).toFixed(0)+'</td><td class="rev">'+won(revenue(e))+'</td><td>'+myAlarms.filter(a=>a.siteId===s2.id).length+'</td><td>'+(s2.tripped?'96.1':'99.8')+'</td></tr>';
   });
   const evb=document.querySelector('#repEvents tbody'); evb.innerHTML='';
-  const evList=rAl.filter(a=>['주의','위험','자동차단','조치','복구'].includes(a.grade)).slice(0,20);
+  const evList=rAl.filter(a=>['주의','위험','자동차단','조치','복구'].includes(a.grade));   // 누적 경보이력 전체 표시
   if(evList.length===0) evb.innerHTML='<tr><td colspan="6" class="small">기간 중 특이 이벤트가 없습니다. 전 사이트 정상 운전.</td></tr>';
   else evList.forEach(a=>{ const act=a.grade==='자동차단'?'자동 차단 후 자동복구':a.grade==='위험'?'다채널 통보·현장점검':a.grade==='복구'?'재투입 완료':a.grade==='조치'?'원격 조치 완료':'점검 권고';
     evb.innerHTML+='<tr><td>'+a.time+'</td><td>'+a.site+'</td><td><span class="badge '+(a.cls==='danger'?'b-danger':'b-warn')+'">'+a.grade+'</span></td><td>'+a.msg+'</td><td>'+a.risk+'</td><td>'+act+'</td></tr>'; });
@@ -1841,7 +1981,7 @@ function render(){
   }
   updatePv(false);
 }
-function goSite(id){ curSite=id; siteSel.value=id; hideTip(); gotoView('site'); }
+function goSite(id){ curSite=id; siteSel.value=id; if(curInv>=S[id].invN) curInv=0; hideTip(); gotoView('site'); render(); }
 function ackOne(key){ const [tm,sid]=key.split('|'); const a=alarms.find(x=>x.time===tm && String(x.siteId)===sid && !x.ack); if(a) a.ack=true; render(); }
 function ackAll(){ const ms=mySites(); alarms.forEach(a=>{ if(ms.includes(a.siteId)) a.ack=true; }); render(); }
 function exportCSV(){
@@ -1872,14 +2012,7 @@ document.getElementById('statMode').onchange = e=>{ pvStatMode=e.target.value; u
 document.getElementById('invPeriod').onchange = ()=>updatePv(true);
 document.getElementById('btnPvToday').onclick = ()=>{ pvStatDay='today'; styleDayBtn(); updatePv(true); };
 document.getElementById('btnPvYest').onclick = ()=>{ pvStatDay='yest'; styleDayBtn(); updatePv(true); };
-document.getElementById('btnRev').onclick = ()=>{
-  SMP = parseFloat(document.getElementById('inSmp').value) || SMP;
-  RECP = parseFloat(document.getElementById('inRec').value) || RECP;
-  // 가중치(RECW)는 계정관리 > 수익 정산 설정에서만 변경 가능 (여기서는 표시 전용)
-  try{ localStorage.setItem('sg_price', JSON.stringify({SMP,RECP,RECW})); }catch(e){}
-  toast(`단가 저장·적용: SMP ${SMP}원 · REC ${RECP.toLocaleString()}원 (가중치 ${RECW} — 계정관리에서 변경)`,'var(--blue)');
-  updatePv(true); render();
-};
+// SMP·REC·가중치는 발전 모니터링에서 표시 전용 — 수정은 계정관리 > 수익 정산 설정
 document.getElementById('inSmp').value = SMP;
 document.getElementById('inRec').value = RECP;
 document.getElementById('inW').value = String(RECW.toFixed(1));
@@ -2003,6 +2136,15 @@ function updatePv(force){
     `<div class="card" style="background:var(--panel2)"><h3>현재 총 출력</h3><div class="big" style="font-size:20px">${sumPow.toFixed(1)} <span style="font-size:12px;color:var(--sub)">kW</span></div><div class="small">가동률 ${(sumCap?sumPow/sumCap*100:0).toFixed(1)}%</div></div>`+
     `<div class="card" style="background:var(--panel2)"><h3>금일 총 발전량 / 수익</h3><div class="big rev" style="font-size:20px">${(sumToday/1000).toFixed(2)} <span style="font-size:12px;color:var(--sub)">MWh</span></div><div class="small rev">${won(revenue(sumToday))}</div></div>`+
     `<div class="card" style="background:var(--panel2)"><h3>누적 총 발전량</h3><div class="big" style="font-size:20px">${(sumCum/1e6).toFixed(2)} <span style="font-size:12px;color:var(--sub)">GWh</span></div><div class="small rev">${won(revenue(sumCum))}</div></div>`;
+  // 발전소별 요약 칩 — 클릭 시 해당 사이트 상세로 이동
+  const ppl=document.getElementById('pvPlantList');
+  if(ppl) ppl.innerHTML = SUM.map(x=>{
+    const px=sitePower(x);
+    const col = x.tripped?'var(--red)':(x.risk>45?'var(--amber)':'var(--green)');
+    return `<div class="clickable" onclick="goSite(${x.id})" title="클릭 → ${x.name} 사이트 상세" style="border:1px solid var(--line);border-radius:10px;padding:7px 12px;background:var(--panel2);display:flex;align-items:center;gap:8px;">
+      <span style="width:8px;height:8px;border-radius:50%;background:${col};display:inline-block"></span><b style="font-size:12.5px">${x.name}</b>
+      <span class="small" style="margin:0">${px.toFixed(1)} kW · 금일 ${Math.round(x.energyToday).toLocaleString()} kWh</span></div>`;
+  }).join('');
   // 사이트별 출력 탭 — 실시간 갱신 (통합 모니터링 포함)
   if(pvTab==='sites' && chSB){
     const list=myS();
@@ -2302,7 +2444,10 @@ function saveAdm(){
   const comm=document.getElementById('admEditComm').value;
   if(!name){ alert('발전소명을 입력하세요.'); return; }
   if(!confirm('['+s2.name+'] 정보를 저장하시겠습니까?\n변경 내용은 계정관리·모니터링 전체에 반영됩니다.')) return;
-  s2.name=name; s2.cap=cap; s2.cod=cod; s2.comm=comm; s2._day=null;
+  s2.name=name; s2.cap=cap; s2.cod=cod; s2.comm=comm; s2._day=null; s2._dayInv=null;
+  // 영속 저장 — 기본 사이트는 오버라이드, 신규 등록 발전소는 전체 저장
+  if(id<BASE_N){ SITE_OVR[id]={name,cap,cod,comm}; try{ localStorage.setItem('sg_siteovr', JSON.stringify(SITE_OVR)); }catch(e){} }
+  else savePlants();
   document.getElementById('admEdit').style.display='none';
   rebuildSelectors(); if(typeof isAdmin==='function'&&isAdmin()) renderAcct(); render();
   toast('사이트 정보 저장 완료: '+name+' (계정관리 반영됨)','var(--green)');

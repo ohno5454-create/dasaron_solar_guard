@@ -1,4 +1,4 @@
-// Dasaron Solar Guard v2.1 — Windows 데스크톱 앱 (Electron 래퍼)
+// Dasaron Solar Guard v2.2 — Windows 데스크톱 앱 (Electron 래퍼)
 const { app, BrowserWindow, Menu, shell } = require('electron');
 const path = require('path');
 
@@ -9,7 +9,7 @@ function createWindow() {
     minWidth: 900,
     minHeight: 600,
     icon: path.join(__dirname, 'app', 'icon-512.png'),
-    title: 'Dasaron Solar Guard v2.1',
+    title: 'Dasaron Solar Guard v2.2',
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false

@@ -1,5 +1,5 @@
-// Dasaron Solar Guard v2.1 PWA Service Worker
-const CACHE = 'dasaronsolar-v22';
+// Dasaron Solar Guard v2.2 PWA Service Worker
+const CACHE = 'dasaronsolar-v23';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png'
