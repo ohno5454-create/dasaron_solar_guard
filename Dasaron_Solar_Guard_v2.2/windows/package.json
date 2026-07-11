@@ -1,0 +1,31 @@
+{
+  "name": "dasaron-solar-guard",
+  "productName": "Dasaron Solar Guard",
+  "version": "2.1.0",
+  "description": "태양광·ESS·EV AI 통합 안전관제 (Windows 데스크톱 앱)",
+  "main": "main.js",
+  "author": "DASARON",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.dasaron.solarguard",
+    "productName": "Dasaron Solar Guard",
+    "win": {
+      "target": ["nsis", "portable"],
+      "icon": "app/icon-512.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    },
+    "files": ["main.js", "app/**/*"]
+  }
+}

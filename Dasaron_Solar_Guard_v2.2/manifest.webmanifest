@@ -1,0 +1,26 @@
+{
+  "id": "/dasaron-solar-guard/",
+  "name": "Dasaron Solar Guard v2.1 — 태양광·ESS·EV AI 통합 안전관제",
+  "short_name": "SolarGuard",
+  "description": "AI 화재 예지·수동 원격제어, 발전·수익 모니터링, ESS·EV 통합 관제 (7개 국어 지원)",
+  "lang": "ko",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#eef2f7",
+  "theme_color": "#eef2f7",
+  "categories": ["business", "utilities", "productivity"],
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "발전 모니터링", "short_name": "모니터링", "url": "./index.html", "icons": [{ "src": "./icon-192.png", "sizes": "192x192" }] },
+    { "name": "경보 확인", "short_name": "경보", "url": "./index.html", "icons": [{ "src": "./icon-192.png", "sizes": "192x192" }] }
+  ]
+}
