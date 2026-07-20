@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <!-- 보안: CSP — 허용된 출처(CDN·카카오·OpenFreeMap) 외 스크립트·리소스 차단 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://dapi.kakao.com https://*.daumcdn.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: blob: https://*.daumcdn.net https://*.kakaocdn.net https://map.daumcdn.net https://tiles.openfreemap.org; connect-src 'self' blob: https://tiles.openfreemap.org https://dapi.kakao.com https://*.daumcdn.net https://cdnjs.cloudflare.com; worker-src 'self' blob:; font-src 'self' data: https://tiles.openfreemap.org; object-src 'none'; base-uri 'self'">
-<title>Dasaron Solar Guard v2.2 — 태양광·ESS·EV AI 통합 안전관제</title>
+<title>Dasaron Solar Guard v3.3 — 태양광·ESS·EV AI 통합 안전관제</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#eef2f7">
 <link rel="apple-touch-icon" href="./icon-192.png">
@@ -139,7 +139,7 @@ footer{padding:14px 16px;color:#5b6778;font-size:11px;border-top:1px solid var(-
       <div style="display:inline-block;width:46px;height:46px;border:7px solid var(--orange);border-radius:50%;margin-bottom:8px;"></div>
       <div class="logo" style="font-size:24px;">DASAR<span class="o">O</span>N</div>
       <div style="color:var(--orange);font-weight:700;font-size:15px;margin-top:2px;">Solar Guard</div>
-      <div style="font-size:12px;color:var(--sub);margin-top:4px;">태양광·ESS·EV AI 통합 안전관제 v2.2</div>
+      <div style="font-size:12px;color:var(--sub);margin-top:4px;">태양광·ESS·EV AI 통합 안전관제 v3.3</div>
     </div>
     <input type="text" id="liId" placeholder="아이디" autocomplete="off">
     <input type="password" id="liPw" placeholder="비밀번호">
@@ -155,7 +155,7 @@ footer{padding:14px 16px;color:#5b6778;font-size:11px;border-top:1px solid var(-
 
 <header>
   <div class="logo" onclick="gotoView('overview')" style="cursor:pointer" title="통합관제로 이동">DASAR<span class="o">O</span>N <span style="font-weight:700;color:var(--orange);font-size:13px;">Solar Guard</span></div>
-  <div class="tag">v2.2</div>
+  <div class="tag">v3.3</div>
   <span class="tag" id="whoami" style="color:var(--orange);border-color:var(--orange)"></span>
   <div id="clock"></div>
   <nav>
@@ -349,8 +349,8 @@ footer{padding:14px 16px;color:#5b6778;font-size:11px;border-top:1px solid var(-
         <span class="small" style="margin-top:0">인버터 선택</span><select id="chartInvSel" onchange="selInv(+this.value)" style="padding:4px 8px;font-size:12px;"></select></div>
       <canvas id="chCurrent"></canvas></div>
     <div class="card"><h3 id="hVolt">스트링 채널 전압 (V)</h3><canvas id="chVolt"></canvas></div>
-    <div class="card"><h3>출력 전력 (kW)</h3><canvas id="chPow"></canvas></div>
-    <div class="card"><h3>내부온도 (°C) / 아크 이벤트</h3><canvas id="chTemp"></canvas></div>
+    <div class="card"><h3 id="hPow">출력 전력 (kW)</h3><canvas id="chPow"></canvas></div>
+    <div class="card"><h3 id="hTemp">내부온도 (°C) / 아크 이벤트</h3><canvas id="chTemp"></canvas></div>
   </div>
   <div class="card" style="margin-top:12px;">
     <div class="row" style="flex-wrap:wrap;margin-bottom:8px;">
@@ -703,7 +703,7 @@ KEPCO) 정산 연계.</div>
 </section>
 </main>
 <div class="toast" id="toast"></div>
-<footer>Dasaron Solar Guard v2.2 — 내장 시뮬레이터 데모. RTU·인버터 실연동, DB, AI 학습모델, 발송 API, KPX·REMS·OCPP 연동은 정식 개발 범위. © 2026 DASARON</footer>
+<footer>Dasaron Solar Guard v3.3 — 내장 시뮬레이터 데모. RTU·인버터 실연동, DB, AI 학습모델, 발송 API, KPX·REMS·OCPP 연동은 정식 개발 범위. © 2026 DASARON</footer>
 
 <script>
 // ===== 오프라인 폴백: CDN(Chart.js) 로드 실패 시에도 앱이 동작하도록 무해한 스텁 제공 =====
@@ -1379,8 +1379,8 @@ function goReport(sid){
 
 // ================= 사이트 상세 =================
 const siteSel=document.getElementById('siteSel');
-let curInv=0;   // 사이트 상세에서 선택된 인버터 번호(0-base)
-siteSel.onchange=()=>{curSite=+siteSel.value; curInv=0; renderAS();};
+let curInv=-1;   // 사이트 상세 선택 인버터 (-1 = 전체 요약 보기, 0~ = 해당 인버터 스트링 상세)
+siteSel.onchange=()=>{curSite=+siteSel.value; curInv=-1; renderAS(); render();};
 document.getElementById('btnTrip').onclick=()=>{
   const s=S[curSite];
   const what = s.t==='inv' ? '인버터 정지(게이트 차단)' : '접속반 차단기 전체 차단';
@@ -1393,23 +1393,27 @@ document.getElementById('btnTrip').onclick=()=>{
   sendNoti(s,`원격 ${what} 실행: 발전이 정지되었습니다.`,{color:'var(--green)'});
 };
 function selInv(k){ curInv=k; render(); }
-document.getElementById('btnInvStop').onclick=()=>{
+function invStopK(k){
   const s=S[curSite];
-  if(s.invTrip[curInv]) return;
-  if(confirm(`[${s.name}] 인버터 ${curInv+1} (INV${curInv+1}) 정지 명령을 전송합니까?\n해당 인버터의 스트링 ${s.invCh[curInv]}개 채널이 모두 정지됩니다.`)){
-    s.invTrip[curInv]=true; prevented++;
-    addAlarm(s,"조치",`INV${curInv+1} 원격 정지 — 스트링 ${s.invCh[curInv]}채널 발전 정지`,"warn");
-    secLog('인버터 원격 정지: '+s.name+' INV'+(curInv+1)+' (조작자 '+(CUR?CUR.id:'-')+')');
-    sendNoti(s,`인버터 INV${curInv+1} 원격 정지 완료.`,{color:'var(--green)'});
-  }};
-document.getElementById('btnInvStart').onclick=()=>{
+  if(k<0 || s.invTrip[k]) return;
+  if(confirm(`[${s.name}] 인버터 ${k+1} (INV${k+1}) 정지 명령을 전송합니까?\n해당 인버터의 스트링 ${s.invCh[k]}개 채널이 모두 정지됩니다.`)){
+    s.invTrip[k]=true; prevented++;
+    addAlarm(s,"조치",`INV${k+1} 원격 정지 — 스트링 ${s.invCh[k]}채널 발전 정지`,"warn");
+    secLog('인버터 원격 정지: '+s.name+' INV'+(k+1)+' (조작자 '+(CUR?CUR.id:'-')+')');
+    sendNoti(s,`인버터 INV${k+1} 원격 정지 완료.`,{color:'var(--green)'});
+  }
+}
+function invStartK(k){
   const s=S[curSite];
-  if(!s.invTrip[curInv]) return;
-  if(confirm(`[${s.name}] 인버터 ${curInv+1} (INV${curInv+1}) 재기동 명령을 전송합니까?`)){
-    s.invTrip[curInv]=false;
-    addAlarm(s,"조치",`INV${curInv+1} 원격 재기동 — 발전 재개`,"warn");
-    sendNoti(s,`인버터 INV${curInv+1} 재기동 완료.`,{color:'var(--green)'});
-  }};
+  if(k<0 || !s.invTrip[k]) return;
+  if(confirm(`[${s.name}] 인버터 ${k+1} (INV${k+1}) 재기동 명령을 전송합니까?`)){
+    s.invTrip[k]=false;
+    addAlarm(s,"조치",`INV${k+1} 원격 재기동 — 발전 재개`,"warn");
+    sendNoti(s,`인버터 INV${k+1} 재기동 완료.`,{color:'var(--green)'});
+  }
+}
+document.getElementById('btnInvStop').onclick=()=>invStopK(curInv);
+document.getElementById('btnInvStart').onclick=()=>invStartK(curInv);
 function isoStr(siteId, idx){
   const s=S[siteId], st=s.strings[idx];
   const nm=chName(s,idx);
@@ -1681,6 +1685,26 @@ function daySeriesInv(s,k){
   }
   s._dayInv[k]={t,cur,volt,ch}; return s._dayInv[k];
 }
+// 인버터 단위 집계 시계열 — 인버터별 출력(kW)·합계전류(A)·평균전압(V)·내부온도(°C)
+function daySeriesAgg(s){
+  const sig=s.invCh.join(',');
+  if(s._dayAgg && s._dayAgg.sig===sig) return s._dayAgg;
+  const invA=[], invV=[], invP=[], invT=[];
+  for(let k=0;k<s.invN;k++){
+    const DI=daySeriesInv(s,k);
+    const A=[],V=[],P=[],T=[];
+    for(let i=0;i<DI.t.length;i++){
+      let sa=0, sv=0, sp=0;
+      for(let c=0;c<DI.ch;c++){ sa+=DI.cur[i][c]; sv+=DI.volt[i][c]; sp+=DI.cur[i][c]*DI.volt[i][c]; }
+      A.push(+sa.toFixed(1)); V.push(Math.round(sv/DI.ch)); P.push(+(sp/1000).toFixed(1));
+      const hf=i/4, f=Math.max(0,Math.sin((hf-5.5)/13*Math.PI));
+      T.push(+(30+f*16+rand01(i*3+s.id*7+k*13)*4).toFixed(1));
+    }
+    invA.push(A); invV.push(V); invP.push(P); invT.push(T);
+  }
+  s._dayAgg={sig, t:daySeriesInv(s,0).t, invA, invV, invP, invT};
+  return s._dayAgg;
+}
 function render(){
   document.getElementById('clock').textContent = new Date().toLocaleString('ko-KR');
   const MS = myS(), ms = mySites();
@@ -1749,56 +1773,113 @@ function render(){
   document.getElementById('siteType').textContent = s.t==='inv' ? '스트링 인버터형 (인버터 로우데이터)' : '접속반형 (RS-485)';
   document.getElementById('siteCap').textContent = '설비용량 '+s.cap.toLocaleString()+' kW';
   document.getElementById('siteAc').innerHTML = `설비용량 <b>${s.cap.toLocaleString()} kW</b> · 인버터 <b>${s.invN}대</b> (스트링 ${s.invCh.join('·')}채널 — 신호 자동감지) · 모델 <b>${s.model}</b> · 패키지 ${s.pkg}대 · 통신 ${s.comm} · ${s.region} &nbsp;|&nbsp; AC ${s.ac.v.toFixed(1)}V·${s.ac.hz.toFixed(2)}Hz·PF ${s.ac.pf.toFixed(3)} &nbsp;|&nbsp; 🌤 일사량 ${s.wx.irr} W/㎡ · 모듈온도 ${s.wx.modT.toFixed(1)}℃ · 외기 ${s.wx.ambT.toFixed(1)}℃ · 풍속 ${s.wx.wind.toFixed(1)}m/s`;
-  if(curInv>=s.invN) curInv=0;
-  document.getElementById('hStr').textContent = `인버터 · 스트링 채널 현황 — 인버터 ${s.invN}대 (채널 ${s.invCh.join('·')} — 수신 신호 자동생성, 수동 원격 제어)`;
-  // 인버터 탭
-  const invTabs=document.getElementById('invTabs');
-  invTabs.innerHTML = Array.from({length:s.invN},(_,k)=>{
-    const trippedInv=s.invTrip[k];
-    const on = k===curInv;
-    return `<button class="btn btn-ghost" style="padding:5px 12px;font-size:12px;${on?'border-color:var(--orange);color:#F98A0B;font-weight:800;':''}${trippedInv?'color:var(--red);':''}" onclick="selInv(${k})">인버터 ${k+1} <span style="font-size:10px;color:var(--sub)">(${s.invCh[k]}ch)</span>${trippedInv?' ⏸':''}</button>`;
-  }).join('');
-  // 선택 인버터 요약
-  const base0=s.invOff[curInv], chN=s.invCh[curInv];
-  const chArr=s.strings.slice(base0, base0+chN);
-  const invP = s.tripped||s.invTrip[curInv] ? 0 : chArr.reduce((a,b)=>a+(b.iso?0:b.v*b.a),0)/1000*s.kf;
-  document.getElementById('invSumLine').innerHTML = `<b>인버터 ${curInv+1} (INV${curInv+1})</b> — 채널 <b>${chN}개</b> (신호 자동감지) · 출력 <b>${invP.toFixed(1)} kW</b> · 상태 ${s.invTrip[curInv]?'<span class="badge b-warn">정지됨</span>':(s.tripped?'<span class="badge b-warn">사이트 차단</span>':'<span class="badge b-ok">운전중</span>')} · 격리 채널 ${chArr.filter(x=>x.iso).length}/${chN}`;
-  document.getElementById('btnInvStop').style.display = s.invTrip[curInv]?'none':'';
-  document.getElementById('btnInvStart').style.display = s.invTrip[curInv]?'':'none';
-  document.getElementById('thDev').textContent = '스트링 채널';
-  const tb=document.querySelector('#strTable tbody'); tb.innerHTML='';
-  chArr.forEach((st,ci)=>{
-    const i=base0+ci;
-    const invStopped = s.invTrip[curInv];
-    let stat, act2;
-    if(st.iso){ stat='<span class="badge b-info">격리됨</span>'; act2=`<button class="btn btn-ghost" style="padding:4px 10px" onclick="reStr(${s.id},${i})">재투입</button>`; }
-    else if(invStopped){ stat='<span class="badge b-warn">인버터 정지</span>'; act2='-'; }
-    else if(st.bad){ stat='<span class="badge b-danger">열화 의심</span>'; act2=`<button class="btn btn-red" style="padding:4px 10px" onclick="isoStr(${s.id},${i})">격리</button>`; }
-    else if(s.tripped){ stat='<span class="badge b-warn">차단</span>'; act2='-'; }
-    else { stat='<span class="badge b-ok">정상</span>'; act2=`<button class="btn btn-ghost" style="padding:4px 10px" onclick="isoStr(${s.id},${i})">격리</button>`; }
-    const off = st.iso||s.tripped||invStopped;
-    // 경고 이력에서 이동해 온 경우 해당 채널 강조 (8초간)
-    const hl = window._hlCh && window._hlCh.site===s.id && window._hlCh.inv===curInv && window._hlCh.ch===ci && Date.now()<window._hlCh.until;
-    tb.innerHTML+=`<tr${st.bad&&!invStopped?' class="alarm-red"':''}${hl?' style="outline:3px solid var(--orange);outline-offset:-2px;background:rgba(249,138,11,.12)"':''}><td><b>ST-${String(ci+1).padStart(2,'0')}</b> <span class="small" style="margin:0">(INV${curInv+1})</span>${hl?' <span class="badge b-org">⚠ 경보 채널</span>':''}</td><td>${st.v.toFixed(0)}</td><td>${off?'0.00':st.a.toFixed(2)}</td><td>${off?'0.00':(st.v*st.a/1000).toFixed(2)}</td><td>${st.t.toFixed(1)}</td><td>${st.ins.toFixed(1)}</td><td>${stat}</td><td>${act2}</td></tr>`;
+  if(curInv>=s.invN) curInv=-1;
+  const allMode = curInv<0;   // -1 = 인버터 전체 요약(인버터 출력 단위) · 0~ = 해당 인버터 스트링 상세
+  // 인버터별 실시간 집계 (출력·전압·전류·온도·격리수)
+  const invLive = Array.from({length:s.invN},(_,k)=>{
+    const arr=s.strings.slice(s.invOff[k], s.invOff[k]+s.invCh[k]);
+    const act=arr.filter(x=>!x.iso);
+    const p = (s.tripped||s.invTrip[k]) ? 0 : act.reduce((a,b)=>a+b.v*b.a,0)/1000*s.kf;
+    return {p, avgV:arr.reduce((a,b)=>a+b.v,0)/Math.max(1,arr.length),
+      sumA:(s.tripped||s.invTrip[k])?0:act.reduce((a,b)=>a+b.a,0),
+      avgT:arr.reduce((a,b)=>a+b.t,0)/Math.max(1,arr.length),
+      isoN:arr.filter(x=>x.iso).length, bad:arr.some(x=>x.bad&&!x.iso)};
   });
+  document.getElementById('hStr').textContent = allMode
+    ? `인버터 전체 현황 (인버터 출력 단위) — ${s.invN}대 · 인버터를 선택하면 스트링 채널 상세가 표시됩니다`
+    : `인버터 ${curInv+1} 스트링 채널 상세 — ${s.invCh[curInv]}채널 (수신 신호 자동생성, 수동 원격 제어)`;
+  // 인버터 탭 (전체 + 인버터 1~N)
+  const invTabs=document.getElementById('invTabs');
+  invTabs.innerHTML = `<button class="btn btn-ghost" style="padding:5px 12px;font-size:12px;${allMode?'border-color:var(--orange);color:#F98A0B;font-weight:800;':''}" onclick="selInv(-1)">전체</button>`+
+    Array.from({length:s.invN},(_,k)=>{
+      const trippedInv=s.invTrip[k];
+      const on = k===curInv;
+      return `<button class="btn btn-ghost" style="padding:5px 12px;font-size:12px;${on?'border-color:var(--orange);color:#F98A0B;font-weight:800;':''}${trippedInv?'color:var(--red);':''}" onclick="selInv(${k})">인버터 ${k+1} <span style="font-size:10px;color:var(--sub)">(${s.invCh[k]}ch)</span>${trippedInv?' ⏸':''}</button>`;
+    }).join('');
+  const tb=document.querySelector('#strTable tbody'); tb.innerHTML='';
+  const thr2=document.querySelector('#strTable thead tr');
+  if(allMode){
+    // ===== 인버터 전체 요약 — 인버터 출력 단위 =====
+    const totP=invLive.reduce((a,b)=>a+b.p,0);
+    document.getElementById('invSumLine').innerHTML = `<b>인버터 전체</b> — ${s.invN}대 · 합계 출력 <b>${totP.toFixed(1)} kW</b> · 상태 ${s.tripped?'<span class="badge b-warn">사이트 차단</span>':'<span class="badge b-ok">운전중 '+s.invTrip.filter(x=>!x).length+'대 / 정지 '+s.invTrip.filter(x=>x).length+'대</span>'} · 격리 채널 ${invLive.reduce((a,b)=>a+b.isoN,0)}개`;
+    document.getElementById('btnInvStop').style.display='none';
+    document.getElementById('btnInvStart').style.display='none';
+    thr2.innerHTML = '<th>인버터</th><th>채널</th><th>출력(kW)</th><th>평균전압(V)</th><th>합계전류(A)</th><th>평균온도(°C)</th><th>격리</th><th>상태</th><th>원격 조치</th>';
+    invLive.forEach((L,k)=>{
+      const stat = s.invTrip[k] ? '<span class="badge b-warn">정지됨</span>' : (s.tripped ? '<span class="badge b-warn">사이트 차단</span>' : (L.bad ? '<span class="badge b-danger">열화 의심</span>' : '<span class="badge b-ok">운전중</span>'));
+      const ctrl = s.invTrip[k]
+        ? `<button class="btn btn-blue" style="padding:4px 10px" onclick="invStartK(${k})">재기동</button>`
+        : `<button class="btn btn-red" style="padding:4px 10px" onclick="invStopK(${k})">정지</button>`;
+      tb.innerHTML += `<tr class="rowlink${L.bad?' alarm-red':''}" onclick="selInv(${k})" title="클릭 → 인버터 ${k+1} 스트링 채널 상세">
+        <td><b>인버터 ${k+1}</b> <span class="small" style="margin:0">(INV${k+1})</span></td><td>${s.invCh[k]}ch</td>
+        <td style="font-size:15px;font-weight:800">${L.p.toFixed(1)}</td><td>${L.avgV.toFixed(0)}</td><td>${L.sumA.toFixed(1)}</td><td>${L.avgT.toFixed(1)}</td>
+        <td>${L.isoN?'<b style="color:var(--blue)">'+L.isoN+'개</b>':'0'}</td><td>${stat}</td>
+        <td style="white-space:nowrap" onclick="event.stopPropagation()"><button class="btn btn-ghost" style="padding:4px 10px" onclick="selInv(${k})">스트링 상세</button> ${ctrl}</td></tr>`;
+    });
+  } else {
+    // ===== 선택 인버터의 스트링 채널 상세 =====
+    const base0=s.invOff[curInv], chN=s.invCh[curInv];
+    const chArr=s.strings.slice(base0, base0+chN);
+    const invP=invLive[curInv].p;
+    document.getElementById('invSumLine').innerHTML = `<button class="btn btn-ghost" style="padding:3px 10px;font-size:11px;margin-right:6px" onclick="selInv(-1)">◀ 전체</button><b>인버터 ${curInv+1} (INV${curInv+1})</b> — 채널 <b>${chN}개</b> (신호 자동감지) · 출력 <b>${invP.toFixed(1)} kW</b> · 상태 ${s.invTrip[curInv]?'<span class="badge b-warn">정지됨</span>':(s.tripped?'<span class="badge b-warn">사이트 차단</span>':'<span class="badge b-ok">운전중</span>')} · 격리 채널 ${chArr.filter(x=>x.iso).length}/${chN}`;
+    document.getElementById('btnInvStop').style.display = s.invTrip[curInv]?'none':'';
+    document.getElementById('btnInvStart').style.display = s.invTrip[curInv]?'':'none';
+    thr2.innerHTML = '<th id="thDev">스트링 채널</th><th>전압(V)</th><th>전류(A)</th><th>출력(kW)</th><th>온도(°C)</th><th>절연저항(MΩ)</th><th>상태</th><th>원격 조치</th>';
+    chArr.forEach((st,ci)=>{
+      const i=base0+ci;
+      const invStopped = s.invTrip[curInv];
+      let stat, act2;
+      if(st.iso){ stat='<span class="badge b-info">격리됨</span>'; act2=`<button class="btn btn-ghost" style="padding:4px 10px" onclick="reStr(${s.id},${i})">재투입</button>`; }
+      else if(invStopped){ stat='<span class="badge b-warn">인버터 정지</span>'; act2='-'; }
+      else if(st.bad){ stat='<span class="badge b-danger">열화 의심</span>'; act2=`<button class="btn btn-red" style="padding:4px 10px" onclick="isoStr(${s.id},${i})">격리</button>`; }
+      else if(s.tripped){ stat='<span class="badge b-warn">차단</span>'; act2='-'; }
+      else { stat='<span class="badge b-ok">정상</span>'; act2=`<button class="btn btn-ghost" style="padding:4px 10px" onclick="isoStr(${s.id},${i})">격리</button>`; }
+      const off = st.iso||s.tripped||invStopped;
+      // 경고 이력에서 이동해 온 경우 해당 채널 강조 (8초간)
+      const hl = window._hlCh && window._hlCh.site===s.id && window._hlCh.inv===curInv && window._hlCh.ch===ci && Date.now()<window._hlCh.until;
+      tb.innerHTML+=`<tr${st.bad&&!invStopped?' class="alarm-red"':''}${hl?' style="outline:3px solid var(--orange);outline-offset:-2px;background:rgba(249,138,11,.12)"':''}><td><b>ST-${String(ci+1).padStart(2,'0')}</b> <span class="small" style="margin:0">(INV${curInv+1})</span>${hl?' <span class="badge b-org">⚠ 경보 채널</span>':''}</td><td>${st.v.toFixed(0)}</td><td>${off?'0.00':st.a.toFixed(2)}</td><td>${off?'0.00':(st.v*st.a/1000).toFixed(2)}</td><td>${st.t.toFixed(1)}</td><td>${st.ins.toFixed(1)}</td><td>${stat}</td><td>${act2}</td></tr>`;
+    });
+  }
   if(chC){
     const D=daySeries(s), N=D.t.length;
     const wI=(key)=>{ let n=Math.min(N,Math.max(8,zoomLen[key]||N)); let st=Math.round(48-n/2); st=Math.max(0,Math.min(N-n,st)); return [st,st+n]; };
-    // 선택 인버터의 전체 스트링 채널을 전류/전압 차트에 표시
-    const DI=daySeriesInv(s,curInv);
+    // 차트: 전체 모드 = 인버터 단위 (INV1~N) · 인버터 선택 시 = 해당 인버터 스트링 채널 단위
     const chPal=['#3b82f6','#16a34a','#f59e0b','#ef4444','#a78bfa','#2dd4bf','#f472b6','#eab308','#0ea5e9','#fb923c','#65a30d','#c084fc','#14b8a6','#f43f5e','#84cc16','#6366f1','#f97316','#06b6d4','#d946ef','#22c55e','#facc15','#60a5fa','#e879f9','#34d399'];
-    document.getElementById('hCur').textContent = `인버터 ${curInv+1} 스트링 채널 전류 (A) — ${DI.ch}채널`;
-    const hv=document.getElementById('hVolt'); if(hv) hv.textContent = `인버터 ${curInv+1} 스트링 채널 전압 (V) — ${DI.ch}채널`;
     const cis=document.getElementById('chartInvSel');
-    if(cis){ if(cis.options.length!==s.invN){ cis.innerHTML=Array.from({length:s.invN},(_,k)=>`<option value="${k}">인버터 ${k+1} (${s.invCh[k]}ch)</option>`).join(''); } cis.value=String(curInv); }
-    let W=wI('cur'); chC.data.labels=DI.t.slice(W[0],W[1]);
-    chC.data.datasets=Array.from({length:DI.ch},(_,k)=>({label:'ST-'+String(k+1).padStart(2,'0'), data:DI.cur.slice(W[0],W[1]).map(x=>x[k]), borderColor:chPal[k%24], borderWidth:1.2, pointRadius:0, tension:.3})); chC.update('none');
-    W=wI('volt'); chV.data.labels=DI.t.slice(W[0],W[1]);
-    chV.data.datasets=Array.from({length:DI.ch},(_,k)=>({label:'ST-'+String(k+1).padStart(2,'0'), data:DI.volt.slice(W[0],W[1]).map(x=>x[k]), borderColor:chPal[k%24], borderWidth:1.2, pointRadius:0, tension:.3})); chV.update('none');
-    W=wI('pow'); chP.data.labels=D.t.slice(W[0],W[1]);
-    chP.data.datasets=[{label:'사이트 출력 (kW)', data:D.pow.slice(W[0],W[1]), borderColor:'#F98A0B', backgroundColor:'rgba(249,138,11,.12)', fill:true, borderWidth:2, pointRadius:0, tension:.3}]; chP.update('none');
-    W=wI('tmp'); chT.data.labels=D.t.slice(W[0],W[1]);
-    chT.data.datasets=[{label:'내부온도 (°C)',data:D.temp.slice(W[0],W[1]).map(x=>x[0]),borderColor:'#ef4444',borderWidth:1.5,pointRadius:0,tension:.3},{label:'누적 아크 (회)',data:D.temp.slice(W[0],W[1]).map(x=>x[1]),borderColor:'#a78bfa',borderWidth:1.5,pointRadius:0,tension:.3}]; chT.update('none');
+    if(cis){ if(cis.options.length!==s.invN+1){ cis.innerHTML='<option value="-1">전체 (인버터 단위)</option>'+Array.from({length:s.invN},(_,k)=>`<option value="${k}">인버터 ${k+1} (${s.invCh[k]}ch)</option>`).join(''); } cis.value=String(curInv); }
+    const AG=daySeriesAgg(s);
+    const hv=document.getElementById('hVolt'), hp=document.getElementById('hPow'), ht=document.getElementById('hTemp');
+    let W;
+    if(allMode){
+      document.getElementById('hCur').textContent = `인버터별 DC 전류 (A) — 전체 ${s.invN}대`;
+      if(hv) hv.textContent = `인버터별 평균 전압 (V) — 전체 ${s.invN}대`;
+      if(hp) hp.textContent = `인버터별 출력 전력 (kW) — 전체 ${s.invN}대`;
+      if(ht) ht.textContent = `인버터별 내부온도 (°C) / 아크 이벤트`;
+      W=wI('cur'); chC.data.labels=AG.t.slice(W[0],W[1]);
+      chC.data.datasets=Array.from({length:s.invN},(_,k)=>({label:'INV'+(k+1)+' (A)', data:AG.invA[k].slice(W[0],W[1]), borderColor:chPal[k%24], borderWidth:1.8, pointRadius:0, tension:.3})); chC.update('none');
+      W=wI('volt'); chV.data.labels=AG.t.slice(W[0],W[1]);
+      chV.data.datasets=Array.from({length:s.invN},(_,k)=>({label:'INV'+(k+1)+' (V)', data:AG.invV[k].slice(W[0],W[1]), borderColor:chPal[k%24], borderWidth:1.8, pointRadius:0, tension:.3})); chV.update('none');
+      W=wI('pow'); chP.data.labels=AG.t.slice(W[0],W[1]);
+      chP.data.datasets=Array.from({length:s.invN},(_,k)=>({label:'INV'+(k+1)+' 출력 (kW)', data:AG.invP[k].slice(W[0],W[1]), borderColor:chPal[k%24], borderWidth:1.8, pointRadius:0, tension:.3})); chP.update('none');
+      W=wI('tmp'); chT.data.labels=AG.t.slice(W[0],W[1]);
+      chT.data.datasets=Array.from({length:s.invN},(_,k)=>({label:'INV'+(k+1)+' 온도 (°C)', data:AG.invT[k].slice(W[0],W[1]), borderColor:chPal[k%24], borderWidth:1.5, pointRadius:0, tension:.3}))
+        .concat([{label:'누적 아크 (회)', data:D.temp.slice(W[0],W[1]).map(x=>x[1]), borderColor:'#94a3b8', borderDash:[4,3], borderWidth:1.5, pointRadius:0, tension:.3}]); chT.update('none');
+    } else {
+      const DI=daySeriesInv(s,curInv);
+      document.getElementById('hCur').textContent = `인버터 ${curInv+1} 스트링 채널 전류 (A) — ${DI.ch}채널`;
+      if(hv) hv.textContent = `인버터 ${curInv+1} 스트링 채널 전압 (V) — ${DI.ch}채널`;
+      if(hp) hp.textContent = `인버터 ${curInv+1} 출력 전력 (kW)`;
+      if(ht) ht.textContent = `인버터 ${curInv+1} 내부온도 (°C) / 아크 이벤트`;
+      W=wI('cur'); chC.data.labels=DI.t.slice(W[0],W[1]);
+      chC.data.datasets=Array.from({length:DI.ch},(_,k)=>({label:'ST-'+String(k+1).padStart(2,'0'), data:DI.cur.slice(W[0],W[1]).map(x=>x[k]), borderColor:chPal[k%24], borderWidth:1.2, pointRadius:0, tension:.3})); chC.update('none');
+      W=wI('volt'); chV.data.labels=DI.t.slice(W[0],W[1]);
+      chV.data.datasets=Array.from({length:DI.ch},(_,k)=>({label:'ST-'+String(k+1).padStart(2,'0'), data:DI.volt.slice(W[0],W[1]).map(x=>x[k]), borderColor:chPal[k%24], borderWidth:1.2, pointRadius:0, tension:.3})); chV.update('none');
+      W=wI('pow'); chP.data.labels=AG.t.slice(W[0],W[1]);
+      chP.data.datasets=[{label:'INV'+(curInv+1)+' 출력 (kW)', data:AG.invP[curInv].slice(W[0],W[1]), borderColor:'#F98A0B', backgroundColor:'rgba(249,138,11,.12)', fill:true, borderWidth:2, pointRadius:0, tension:.3}]; chP.update('none');
+      W=wI('tmp'); chT.data.labels=AG.t.slice(W[0],W[1]);
+      chT.data.datasets=[{label:'INV'+(curInv+1)+' 내부온도 (°C)', data:AG.invT[curInv].slice(W[0],W[1]), borderColor:'#ef4444', borderWidth:1.5, pointRadius:0, tension:.3},
+        {label:'누적 아크 (회)', data:D.temp.slice(W[0],W[1]).map(x=>x[1]), borderColor:'#a78bfa', borderWidth:1.5, pointRadius:0, tension:.3}]; chT.update('none');
+    }
     const rsel=document.getElementById('riskSel'); const rv=rsel?rsel.value:'all';
     const palette=['#3b82f6','#16a34a','#ef4444','#f59e0b','#a78bfa','#F98A0B','#2dd4bf','#f472b6','#eab308','#0ea5e9','#fb923c','#65a30d'];
     const list = (rv==='all') ? MS : MS.filter(x=>x.id===+rv);
@@ -1981,7 +2062,7 @@ function render(){
   }
   updatePv(false);
 }
-function goSite(id){ curSite=id; siteSel.value=id; if(curInv>=S[id].invN) curInv=0; hideTip(); gotoView('site'); render(); }
+function goSite(id){ curSite=id; siteSel.value=id; curInv=-1; hideTip(); gotoView('site'); render(); }
 function ackOne(key){ const [tm,sid]=key.split('|'); const a=alarms.find(x=>x.time===tm && String(x.siteId)===sid && !x.ack); if(a) a.ack=true; render(); }
 function ackAll(){ const ms=mySites(); alarms.forEach(a=>{ if(ms.includes(a.siteId)) a.ack=true; }); render(); }
 function exportCSV(){
