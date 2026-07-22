@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <!-- 보안: CSP — 허용된 출처(CDN·카카오·OpenFreeMap) 외 스크립트·리소스 차단 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://dapi.kakao.com https://*.daumcdn.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: blob: https://*.daumcdn.net https://*.kakaocdn.net https://map.daumcdn.net https://tiles.openfreemap.org; connect-src 'self' blob: https://tiles.openfreemap.org https://dapi.kakao.com https://*.daumcdn.net https://cdnjs.cloudflare.com; worker-src 'self' blob:; font-src 'self' data: https://tiles.openfreemap.org; object-src 'none'; base-uri 'self'">
-<title>Dasaron Solar Guard v3.3 — 태양광·ESS·EV AI 통합 안전관제</title>
+<title>Dasaron Solar Guard v3.4 — 태양광·ESS·EV AI 통합 안전관제</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#eef2f7">
 <link rel="apple-touch-icon" href="./icon-192.png">
@@ -139,7 +139,7 @@ footer{padding:14px 16px;color:#5b6778;font-size:11px;border-top:1px solid var(-
       <div style="display:inline-block;width:46px;height:46px;border:7px solid var(--orange);border-radius:50%;margin-bottom:8px;"></div>
       <div class="logo" style="font-size:24px;">DASAR<span class="o">O</span>N</div>
       <div style="color:var(--orange);font-weight:700;font-size:15px;margin-top:2px;">Solar Guard</div>
-      <div style="font-size:12px;color:var(--sub);margin-top:4px;">태양광·ESS·EV AI 통합 안전관제 v3.3</div>
+      <div style="font-size:12px;color:var(--sub);margin-top:4px;">태양광·ESS·EV AI 통합 안전관제 v3.4</div>
     </div>
     <input type="text" id="liId" placeholder="아이디" autocomplete="off">
     <input type="password" id="liPw" placeholder="비밀번호">
@@ -155,7 +155,7 @@ footer{padding:14px 16px;color:#5b6778;font-size:11px;border-top:1px solid var(-
 
 <header>
   <div class="logo" onclick="gotoView('overview')" style="cursor:pointer" title="통합관제로 이동">DASAR<span class="o">O</span>N <span style="font-weight:700;color:var(--orange);font-size:13px;">Solar Guard</span></div>
-  <div class="tag">v3.3</div>
+  <div class="tag">v3.4</div>
   <span class="tag" id="whoami" style="color:var(--orange);border-color:var(--orange)"></span>
   <div id="clock"></div>
   <nav>
@@ -703,7 +703,7 @@ KEPCO) 정산 연계.</div>
 </section>
 </main>
 <div class="toast" id="toast"></div>
-<footer>Dasaron Solar Guard v3.3 — 내장 시뮬레이터 데모. RTU·인버터 실연동, DB, AI 학습모델, 발송 API, KPX·REMS·OCPP 연동은 정식 개발 범위. © 2026 DASARON</footer>
+<footer>Dasaron Solar Guard v3.4 — 내장 시뮬레이터 데모. RTU·인버터 실연동, DB, AI 학습모델, 발송 API, KPX·REMS·OCPP 연동은 정식 개발 범위. © 2026 DASARON</footer>
 
 <script>
 // ===== 오프라인 폴백: CDN(Chart.js) 로드 실패 시에도 앱이 동작하도록 무해한 스텁 제공 =====
